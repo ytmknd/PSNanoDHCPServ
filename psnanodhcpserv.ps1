@@ -53,7 +53,8 @@ $Router = "192.168.10.1"
 $DomainNameServer = "192.168.10.1"
 $DomainName = "tempdomain"
 $NetBIOSOverTCPIPNameServer = "192.168.10.1"
-
+#
+$global:requestedIPAddress = "127.0.0.1"
 #
 $clientIPAddressStartAddress = @(0,0,0,0)   
 $clientIPAddressEndAddress = @(0,0,0,0)   
@@ -688,7 +689,7 @@ function lcl_buildDHCPPACKPacket() {
     setTransactionID2UDPPacket $TransactionID
     setNumberOfSeconds2UDPPacket
     setFlagsOfSeconds2UDPPacket
-    setClientIPAddress2UDPPacket $ClientIPAddress
+    setClientIPAddress2UDPPacket $requestedIPAddress
     setYourIPAddress2UDPPacket "0.0.0.0"
     setServerIPAddress2UDPPacket "0.0.0.0"
     setGatewayIPAddress2UDPPacket "0.0.0.0"
@@ -781,8 +782,10 @@ function CMDParseOption_RequestedIPAddress() { #50 Requested IP Address..
     $ret =""
     $i = getVEXTLength
     foreach($d in $dhcpOptionsRecv[($headposRecv+2)..($headposRecv+2+$i-1)]) {
-        $ret = $ret + [Convert]::ToInt32($d,16).ToString("d3") + "."
+        $ret = $ret + [Convert]::ToInt32($d,16).ToString("d") + "."
     }
+    $ret = $ret.SubString(0,$ret.length-1)
+    Set-Variable -Name "requestedIPAddress" -Scope global -Value $ret # record  
     return $ret
 }
 function lcl_outputCodeHeader() {
@@ -947,6 +950,7 @@ function mainloop() {
                 echo("Recieved DHCPREQUEST message.")
                 $TransactionID = ([string]::Join("", $udpPacketRecv[4..7]))
                 $ClientIPAddress = lcl_convertIPAddress ([string]::Join(".", $udpPacketRecv[12..15]))
+                Write-Debug($requestedIPAddress)
                 $ClientHardwareAddress = ([string]::Join("", $udpPacketRecv[28..33]))
                 if ($noreplymode -ne $TRUE) { replyDHCPPACK }
                 }
