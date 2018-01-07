@@ -24,7 +24,7 @@
 #>
 [CmdletBinding()]
 Param(
-    [Parameter(Mandatory=$FALSE,Position=1)]
+    [Parameter(Mandatory=$TRUE,Position=1)]
     [string]$clientIPAddressesWithBitmask,
 
     [Parameter(Mandatory=$FALSE,Position=2)]
@@ -53,6 +53,10 @@ $Router = "192.168.10.1"
 $DomainNameServer = "192.168.10.1"
 $DomainName = "tempdomain"
 $NetBIOSOverTCPIPNameServer = "192.168.10.1"
+
+#
+$clientIPAddressStartAddress = @(0,0,0,0)   
+$clientIPAddressEndAddress = @(0,0,0,0)   
 
 # Recv
 ## UDP packet buffer
@@ -857,6 +861,51 @@ function lcl_findLeasableIPAddress() {
     return "192.168.10.5" # FIXME
 }
 
+function getClientIPStartAndEndAddress() {
+    Write-Debug $clientIPAddressesWithBitmask
+    #IPv4 only
+    if ($clientIPAddressesWithBitmask.Contains("/")) {     # xxx.xxx.xxx.xxx/mm (24 <= mm <= 32)
+        $a = $clientIPAddressesWithBitmask.Split("/")
+        $ba = ($a[0]).split(".")
+        $mask = $a[1]
+        if (([Convert]::ToInt32($mask) -lt 24) -Or (([Convert]::ToInt32($mask) -gt 32))) { 
+            throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" 
+        }
+        if ($ba.length -ne 4) { throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" }
+        for($i=0;$i -lt 4;$i++) {
+            if (([Convert]::ToInt32($ba[$i]) -gt 255) -Or (([Convert]::ToInt32($ba[$i]) -lt 0))) { 
+                throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" 
+            }
+            $clientIPAddressStartAddress[$i] = $ba[$i]
+        }
+        $clientIPAddressStartAddress[3] = $clientIPAddressStartAddress[3] -band ((255 -shl (32 - $mask)) -band 255)
+
+        $clientIPAddressEndAddress[0] = $clientIPAddressStartAddress[0] 
+        $clientIPAddressEndAddress[1] = $clientIPAddressStartAddress[1] 
+        $clientIPAddressEndAddress[2] = $clientIPAddressStartAddress[2] 
+        $clientIPAddressEndAddress[3] = $clientIPAddressStartAddress[3] -bor (( 65535 -bxor (255 -shl (32 - $mask))) -band 255)
+
+        #echo ($clientIPAddressStartAddress)
+        #echo ($clientIPAddressEndAddress)
+    } else {    # xxx.xxx.xxx.xxx
+        $ba = ($clientIPAddressesWithBitmask).split(".")
+        if ($ba.length -ne 4) { throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" }
+        for($i=0;$i -lt 4;$i++) {
+            if (([Convert]::ToInt32($ba[$i]) -gt 255) -Or (([Convert]::ToInt32($ba[$i]) -lt 0))) { 
+                throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" 
+            }
+            $clientIPAddressStartAddress[$i] = $ba[$i]
+        }
+        $clientIPAddressEndAddress[0] = $clientIPAddressStartAddress[0] 
+        $clientIPAddressEndAddress[1] = $clientIPAddressStartAddress[1] 
+        $clientIPAddressEndAddress[2] = $clientIPAddressStartAddress[2] 
+        $clientIPAddressEndAddress[3] = $clientIPAddressStartAddress[3]
+
+        #echo ($clientIPAddressStartAddress)
+        #echo ($clientIPAddressEndAddress)           
+    }
+}
+
 function mainloop() {
     while(1) {
         $content = $udpclient.Receive([ref]$endpoint)
@@ -885,5 +934,7 @@ function mainloop() {
         }
     }
 }
+
+getClientIPStartAndEndAddress
 
 mainloop
