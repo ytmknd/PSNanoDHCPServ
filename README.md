@@ -1,6 +1,6 @@
 # PSNanoDHCPServ
 
-This script still doesn't work.
+This script doesn't work yet.
 
 ## Description
 
