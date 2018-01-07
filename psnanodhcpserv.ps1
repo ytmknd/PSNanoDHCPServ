@@ -475,7 +475,6 @@ function setDHCPOption2UDPPacket($opt) { #DHCP Option
 function lcl_checkIfAllZero($serverhostname) {
     $allzerof = $TRUE
     foreach($d in $serverhostname) {
-        #echo ("#"+$d+"# ")
         if ($d -ne "00") {
             $allzerof = $FALSE
             break
