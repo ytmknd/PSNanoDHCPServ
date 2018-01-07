@@ -62,16 +62,12 @@ $clientIPAddressEndAddress = @(0,0,0,0)
 # Recv
 ## UDP packet buffer
 $udpPacketRecv = @(0) * 300
-## DHCP option
-$dhcpOptionsRecv = @(0) * 64
-$headposRecv = 4 # skip magic 
-
 # Send
 ## UDP packet buffer
 $udpPacketSend = @(0) * 300
 ## DHCP option
-$dhcpOptionsSend = @(0) * 64
-$headposSend = 4 # skip magic
+$global:dhcpOptions = @("00") * 64
+$global:headpos = 4 # skip magic 
 
 $port=67
 $endpoint = new-object System.Net.IPEndPoint ([IPAddress]::Any,$port)
@@ -491,26 +487,26 @@ function lcl_checkIfAllZero($serverhostname) {
 # for building DHCP option
 function setMagic2DHCPOption() { 
     # 0x63 0x82 0x53 0x63
-    $dhcpOptionsSend[0] = "63"
-    $dhcpOptionsSend[1] = "82"
-    $dhcpOptionsSend[2] = "53"
-    $dhcpOptionsSend[3] = "63"
+    $dhcpOptions[0] = "63"
+    $dhcpOptions[1] = "82"
+    $dhcpOptions[2] = "53"
+    $dhcpOptions[3] = "63"
 }
 function setCodeAndOption2DHCPOption($data) { 
     for($i=0;$i -lt $data.length;$i++) {
-        $dhcpOptionsSend[($headposSend + $i)] = $data[$i]
+        $dhcpOptions[($headpos + $i)] = $data[$i]
     }
 }
 function setEndMark2DHCPOption() { 
-    $dhcpOptionsSend[$headposSend] = "FF" 
+    $dhcpOptions[$headpos] = "FF" 
 }
 function lcl_getVEXTLength() {
-    #Write-Debug "$($dhcpOptionsSend[$headposSend + 1])"
-    return [Convert]::ToInt32(($dhcpOptionsSend[$headposSend + 1]), 16)
+    #Write-Debug "$($dhcpOptions[$headpos + 1])"
+    return [Convert]::ToInt32(($dhcpOptions[$headpos + 1]), 16)
 }
 function ForwardHeadPos() {
     $i = lcl_getVEXTLength
-    return $headposSend+2+$i
+    return $headpos+2+$i
 }
 function getOptionSeq4DHCPOption([array]$opt) {
     for($i=0;$i -lt $DHCPOptionTable.length;$i++) {
@@ -626,6 +622,10 @@ function getCMDAndAscii4DHCPOption([int]$num, [array]$opt) {
     return $ret
 }
 
+function clearDHCPOptionsBuf() {
+    Set-Variable -Name "dhcpOptions" -Scope global -Value (@("00") * 64) 
+}
+
 function lcl_buildDHCPOFFERPacket() {
     ##Header
     setOpcode2UDPPacket $DHCP_OPCODE_ACK
@@ -643,28 +643,39 @@ function lcl_buildDHCPOFFERPacket() {
     setServerHostName2UDPPacket
     setBootFilename2UDPPacket
     ##Option
+    clearDHCPOptionsBuf
+    Set-Variable -Name "headpos" -Scope global -Value 4 
     setMagic2DHCPOption
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "DHCP message type.",$MSG_DHCPOFFER) # Option: (53) DHCP Message Type (OFFER)
-    $headposSend=ForwardHeadPos
+    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Server identifier.",$ServerIdentifier) # Option: (54) DHCP Server Identifier
-    $headposSend=ForwardHeadPos
+    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "IP address lease time.","1day") # Option: (51) IP Address Lease Time
-    $headposSend=ForwardHeadPos
+    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Subnet Mask.",$SubnetMask) # Option: (1) Subnet Mask
-    $headposSend=ForwardHeadPos
+    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Router.",$Router) # Option: (3) Router
-    $headposSend=ForwardHeadPos
+    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Domain Name Server.","192.168.10.1") # Option: (6) Domain Name Server
-    $headposSend=ForwardHeadPos
+    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Domain Name.",$DomainNameServer) # Option: (15) Domain Name
-    $headposSend=ForwardHeadPos
+    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "NetBIOS over TCP/IP name server.",$NetBIOSOverTCPIPNameServer) # Option: (44) NetBIOS over TCP/IP Name Server
-    $headposSend=ForwardHeadPos
+    $headpos=ForwardHeadPos
     setEndMark2DHCPOption
-    setDHCPOption2UDPPacket $dhcpOptionsSend
+    setDHCPOption2UDPPacket $dhcpOptions
+
+    Set-Variable -Name "dhcpOptions" -Scope global -Value $dhcpOptions 
+    $count=0
+    foreach($e in $dhcpOptions) {
+        [System.Console]::Write($d + " ")
+        $count += 1 
+        if ($count % 16 -eq 0) { [System.Console]::WriteLine("") } 
+    }
+    if($count % 16 -ne 0) { [System.Console]::WriteLine("") } 
 
     Write-Debug("DEBUG DHCPOFFER")
-    echoDHCPPcakcet($udpPacketSend)
+    echoDHCPPcakcetSend
 
     #send
     $aStr = ""
@@ -697,28 +708,39 @@ function lcl_buildDHCPPACKPacket() {
     setServerHostName2UDPPacket
     setBootFilename2UDPPacket
     ##Option
+    clearDHCPOptionsBuf
+    Set-Variable -Name "headpos" -Scope global -Value 4 
     setMagic2DHCPOption
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "DHCP message type.",$MSG_DHCPPACK) # Option: (53) DHCP Message Type (ACK)
-    $headposSend=ForwardHeadPos
+    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Server identifier.",$ServerIdentifier) # Option: (54) DHCP Server Identifier
-    $headposSend=ForwardHeadPos
+    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "IP address lease time.","1day") # Option: (51) IP Address Lease Time
-    $headposSend=ForwardHeadPos
+    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Subnet Mask.",$SubnetMask) # Option: (1) Subnet Mask
-    $headposSend=ForwardHeadPos
+    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Router.",$Router) # Option: (3) Router
-    $headposSend=ForwardHeadPos
+    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Domain Name Server.",$DomainNameServer) # Option: (6) Domain Name Server
-    $headposSend=ForwardHeadPos
+    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Domain Name.",$DomainName) # Option: (15) Domain Name
-    $headposSend=ForwardHeadPos
-    setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Domain Name Server.",$NetBIOSOverTCPIPNameServer) # Option: (44) NetBIOS over TCP/IP Name Server
-    $headposSend=ForwardHeadPos
+    $headpos=ForwardHeadPos
+    setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "NetBIOS over TCP/IP name server.",$NetBIOSOverTCPIPNameServer) # Option: (44) NetBIOS over TCP/IP Name Server
+    $headpos=ForwardHeadPos
     setEndMark2DHCPOption
-    setDHCPOption2UDPPacket $dhcpOptionsSend
+    setDHCPOption2UDPPacket $dhcpOptions
+
+    Set-Variable -Name "dhcpOptions" -Scope global -Value $dhcpOptions 
+    $count=0
+    foreach($e in $dhcpOptions) {
+        [System.Console]::Write($e + " ")
+        $count += 1 
+        if ($count % 16 -eq 0) { [System.Console]::WriteLine("") } 
+    }
+    if($count % 16 -ne 0) { [System.Console]::WriteLine("") } 
 
     echo("DEBUG DHCPPACK")
-    echoDHCPPcakcet($udpPacketSend)
+    echoDHCPPcakcetSend
 
     #send
     $aStr = ""
@@ -745,7 +767,7 @@ function CMDParseOption_Ascii() {
     $ret = ""
     $encoding = [system.Text.Encoding]::GetEncoding("ASCII")
     $i = getVEXTLength
-    foreach($d in $dhcpOptionsRecv[($headposRecv+2)..($headposRecv+2+$i-1)]) {
+    foreach($d in $dhcpOptions[($headpos+2)..($headpos+2+$i-1)]) {
         $ret = $ret + $encoding.getchars([Convert]::ToInt32($d,16))
     }
     return $ret
@@ -753,7 +775,7 @@ function CMDParseOption_Ascii() {
 function CMDParseOption_Dump() {
     $i = getVEXTLength
     $count = 0
-    foreach($d in $dhcpOptionsRecv[($headposRecv+2)..($headposRecv+2+$i-1)]) {
+    foreach($d in $dhcpOptions[($headpos+2)..($headpos+2+$i-1)]) {
         [System.Console]::Write($d + " ")
         $count += 1 
         if ($count % 16 -eq 0) { [System.Console]::WriteLine("") }    
@@ -762,7 +784,7 @@ function CMDParseOption_Dump() {
 }
 
 function lcl_getDHCPOptionMessage() {
-    $rawdata = $dhcpOptionsRecv[$headposRecv+2]
+    $rawdata = $dhcpOptions[$headpos+2]
     $ret="UNKNOWN"
     switch ($rawdata) {
         "01"{ $ret=$MSG_DHCPDISCOVER }
@@ -781,7 +803,7 @@ function CMDParseOption_DHCPMessageType() { #53 DHCP message type.
 function CMDParseOption_RequestedIPAddress() { #50 Requested IP Address..
     $ret =""
     $i = getVEXTLength
-    foreach($d in $dhcpOptionsRecv[($headposRecv+2)..($headposRecv+2+$i-1)]) {
+    foreach($d in $dhcpOptions[($headpos+2)..($headpos+2+$i-1)]) {
         $ret = $ret + [Convert]::ToInt32($d,16).ToString("d") + "."
     }
     $ret = $ret.SubString(0,$ret.length-1)
@@ -789,41 +811,41 @@ function CMDParseOption_RequestedIPAddress() { #50 Requested IP Address..
     return $ret
 }
 function lcl_outputCodeHeader() {
-    [System.Console]::Write("option $([Convert]::ToInt32($dhcpOptionsRecv[$headposRecv],16)) ")
+    [System.Console]::Write("option $([Convert]::ToInt32($dhcpOptions[$headpos],16)) ")
 }
 function lcl_outputLengthHeader() {
-    [System.Console]::Write("+" + (($headposRecv+1).ToString("00")) + $d + " Len  :")
+    [System.Console]::Write("+" + (($headpos+1).ToString("00")) + $d + " Len  :")
 }
 function lcl_outputParamHeader() {
     [System.Console]::Write("       ")
 }
 function getVEXTDescription() {
-    return $DHCPOptionTable[[Convert]::ToInt32($dhcpOptionsRecv[$headposRecv],16)][0]
+    return $DHCPOptionTable[[Convert]::ToInt32($dhcpOptions[$headpos],16)][0]
 }
 function getVEXTLength() {
-    return [Convert]::ToInt32($dhcpOptionsRecv[$headposRecv + 1])
+    return [Convert]::ToInt32($dhcpOptions[$headpos + 1],16)
 }
 function getVEXTParam() {
-    return Invoke-Expression "$($DHCPOptionTable[[Convert]::ToInt32($dhcpOptionsRecv[$headposRecv],16)][1])"
+    return Invoke-Expression "$($DHCPOptionTable[[Convert]::ToInt32($dhcpOptions[$headpos],16)][1])"
 }
 function optionParseForwardHeadPos() {
     $i = getVEXTLength
-    return $headposRecv+2+$i
+    return $headpos+2+$i
 }
-function parseOptionBodyRecv() {
-    $headposRecv=4
-    while ($dhcpOptionsRecv[$headposRecv] -ne "FF") {
+function parseOptionBody() {
+    $headpos = 4 
+    while ($dhcpOptions[$headpos] -ne "FF") {
         lcl_outputCodeHeader
         echo(getVEXTDescription)
         lcl_outputParamHeader 
         echo(getVEXTParam)
-        $headposRecv=optionParseForwardHeadPos
+        $headpos=optionParseForwardHeadPos
     }
 
     [System.Console]::WriteLine("--Terminated.--")
 }
 
-function echoDHCPPcakcet() {
+function echoDHCPPcakcetRecv() {
     echo ("Opcode                 " + ":" + [string]::Join(" ", $udpPacketRecv[0..0]))
     echo ("Hardware type          " + ":" + [string]::Join(" ", $udpPacketRecv[1..1]))
     echo ("Hardware address length" + ":" + [string]::Join(" ", $udpPacketRecv[2..2]))
@@ -847,7 +869,36 @@ function echoDHCPPcakcet() {
         echo ("Boot filename          " + ":" + [string]::Join(" ", $udpPacketRecv[108..235]))
     }
 
-    parseOptionBodyRecv 
+    Set-Variable -Name "headpos" -Scope global -Value 4 
+    parseOptionBody
+}
+
+function echoDHCPPcakcetSend() {
+    echo ("Opcode                 " + ":" + [string]::Join(" ", $udpPacketSend[0..0]))
+    echo ("Hardware type          " + ":" + [string]::Join(" ", $udpPacketSend[1..1]))
+    echo ("Hardware address length" + ":" + [string]::Join(" ", $udpPacketSend[2..2]))
+    echo ("Hop count              " + ":" + [string]::Join(" ", $udpPacketSend[3..3]))
+    echo ("Transaction ID         " + ":" + [string]::Join(" ", $udpPacketSend[4..7]))
+    echo ("Number of seconds      " + ":" + [string]::Join(" ", $udpPacketSend[8..9]))
+    echo ("Flags                  " + ":" + [string]::Join(" ", $udpPacketSend[10..11]))
+    echo ("Client IP address      " + ":" + [string]::Join(" ", $udpPacketSend[12..15]))
+    echo ("Your IP address        " + ":" + [string]::Join(" ", $udpPacketSend[16..19]))
+    echo ("Server IP address      " + ":" + [string]::Join(" ", $udpPacketSend[20..23]))
+    echo ("Gateway IP address     " + ":" + [string]::Join(" ", $udpPacketSend[24..27]))
+    echo ("Client hardware address" + ":" + [string]::Join(" ", $udpPacketSend[28..43])) 
+    if ((lcl_checkIfAllZero $udpPacketSend[44..107]) -eq $TRUE) {
+        echo ("Server host name       " + ":" + "00 * $($udpPacketSend[44..107].length)")
+    } else {
+        echo ("Server host name       " + ":" + [string]::Join(" ", $udpPacketSend[44..107]))
+    }
+    if ((lcl_checkIfAllZero $udpPacketRecv[108..235]) -eq $TRUE) {
+        echo ("Boot filename          " + ":" + "00 * $($udpPacketRecv[108..235].length)")
+    } else {
+        echo ("Boot filename          " + ":" + [string]::Join(" ", $udpPacketSend[108..235]))
+    }
+
+    Set-Variable -Name "headpos" -Scope global -Value 4 
+    parseOptionBody
 }
 
 function lcl_convertIPAddress($str) { #50 Requested IP Address..
@@ -933,10 +984,10 @@ function mainloop() {
     while(1) {
         $content = $udpclient.Receive([ref]$endpoint)
         $udpPacketRecv = [bitconverter]::ToString($content).split("-")
-        $dhcpOptionsRecv = $udpPacketRecv[236..299]
+        $dhcpOptions = $udpPacketRecv[236..299]
 
         echo ("I recieved a BOOTP/DHCP packet-->")
-        echoDHCPPcakcet
+        echoDHCPPcakcetRecv
 
         switch(CMDParseOption_DHCPMessageType) {
             $MSG_DHCPDISCOVER { 
