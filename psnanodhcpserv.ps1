@@ -857,8 +857,28 @@ function lcl_convertIPAddress($str) { #50 Requested IP Address..
     return $ret
 }
 
+function IsLeasedIPAdress ($fthoct) {
+    return $True; #FIXME    
+}
+function lcl_getIPAdressString ($fthoct) {
+    $ret=""
+    $ret+=($clientIPAddressStartAddress[0]).ToString($null) + "."
+    $ret+=($clientIPAddressStartAddress[1]).ToString($null) + "."
+    $ret+=($clientIPAddressStartAddress[2]).ToString($null) + "."
+    $ret+=$i.ToString($null)
+    return $ret;  
+}
 function lcl_findLeasableIPAddress() {
-    return "192.168.10.5" # FIXME
+    if ($clientIPAddressStartAddress -eq $clientIPAddressEndAddress) {
+        return (lcl_getIPAdressString $clientIPAddressStartAddress[3]);
+    } else {
+        for($i=$clientIPAddressStartAddress[3]+1;$i -le $clientIPAddressEndAddress[3];$i++) {
+            if (IsLeasedIPAdress($i)) {
+                return (lcl_getIPAdressString $i)
+            }
+        }
+    }
+    return "0.0.0.0" # no resource
 }
 
 function getClientIPStartAndEndAddress() {
