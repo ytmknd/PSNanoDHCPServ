@@ -12,6 +12,8 @@ I assume that this server should be terminated quickly after use(after sending t
 
 ## Usage
 
+*You must run this script as administrator*
+
 ## Requirement
 
 PowerShell 2.0 or later
