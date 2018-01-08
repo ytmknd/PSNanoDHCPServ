@@ -2,7 +2,7 @@
 
 *This script doesn't work yet.*
 
-This server is a very tiny and uncommonly DHCP server as a "Rescue Tool".
+PSNanoDHCPServ is a very tiny and uncommonly DHCP server as a "Rescue Tool".
 
 ## Description
 
