@@ -1,6 +1,6 @@
 # PSNanoDHCPServ
 
-*This doesn't work yet.*
+*This script doesn't work yet.*
 
 This server is a very tiny and uncommonly DHCP server as a "Rescue Tool".
 
