@@ -685,13 +685,10 @@ function replyDHCPOFFER() {
     echoDHCPPcakcetSend
 
     #send
-    $aStr = ""
-    $encoding = [system.Text.Encoding]::GetEncoding("ASCII")
+    $b=@()
     foreach($d in $udpPacketSend) {
-        $aStr = $aStr + $encoding.getchars([Convert]::ToInt32($d,16))
+        $b += [Byte]::Parse(([Convert]::ToInt32($d,16)), [System.Globalization.NumberStyles]::Integer) 
     }
-    $b=[Text.Encoding]::ASCII.GetBytes($aStr)
-    #Write-Debug("DEBUG $($ClientIPAddress)")
     $endpoint = new-object System.Net.IPEndPoint (([system.net.IPAddress]::Parse($ClientIPAddress)),68)
     $bytesSent=$udpclient.Send($b,($b.length),$endpoint)
 }
@@ -750,13 +747,10 @@ function replyDHCPPACK() {
     echoDHCPPcakcetSend
 
     #send
-    $aStr = ""
-    $encoding = [system.Text.Encoding]::GetEncoding("ASCII")
+    $b=@()
     foreach($d in $udpPacketSend) {
-        $aStr = $aStr + $encoding.getchars([Convert]::ToInt32($d,16))
+        $b += [Byte]::Parse(([Convert]::ToInt32($d,16)), [System.Globalization.NumberStyles]::Integer) 
     }
-    $b=[Text.Encoding]::ASCII.GetBytes($aStr)
-    #Write-Debug("DEBUG $($ClientIPAddress)")
     $endpoint = new-object System.Net.IPEndPoint (([system.net.IPAddress]::Parse($ClientIPAddress)),68)
     $bytesSent=$udpclient.Send($b,($b.length),$endpoint)
 }
