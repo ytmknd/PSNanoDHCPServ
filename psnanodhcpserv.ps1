@@ -956,9 +956,6 @@ function getClientIPStartAndEndAddress() {
         $clientIPAddressEndAddress[1] = $clientIPAddressStartAddress[1] 
         $clientIPAddressEndAddress[2] = $clientIPAddressStartAddress[2] 
         $clientIPAddressEndAddress[3] = $clientIPAddressStartAddress[3] -bor (( 65535 -bxor (255 -shl (32 - $mask))) -band 255)
-
-        #echo ($clientIPAddressStartAddress)
-        #echo ($clientIPAddressEndAddress)
     } else {    # xxx.xxx.xxx.xxx
         $ba = ($clientIPAddressesWithBitmask).split(".")
         if ($ba.length -ne 4) { throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" }
@@ -971,10 +968,7 @@ function getClientIPStartAndEndAddress() {
         $clientIPAddressEndAddress[0] = $clientIPAddressStartAddress[0] 
         $clientIPAddressEndAddress[1] = $clientIPAddressStartAddress[1] 
         $clientIPAddressEndAddress[2] = $clientIPAddressStartAddress[2] 
-        $clientIPAddressEndAddress[3] = $clientIPAddressStartAddress[3]
-
-        #echo ($clientIPAddressStartAddress)
-        #echo ($clientIPAddressEndAddress)           
+        $clientIPAddressEndAddress[3] = $clientIPAddressStartAddress[3]         
     }
 }
 
