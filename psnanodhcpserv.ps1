@@ -982,6 +982,7 @@ function getClientIPStartAndEndAddress() {
 function mainloop() {
     while(1) {
         $content = $udpclient.Receive([ref]$endpoint)
+        Write-Debug("This message was sent from $($endpoint.Address.ToString())($($endpoint.Port.ToString()))");
         $udpPacketRecv = [bitconverter]::ToString($content).split("-")
         #$dhcpOptions = $udpPacketRecv[236..299]
         for($i=0;$i -lt 64;$i++) {
