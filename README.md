@@ -8,7 +8,8 @@ PSNanoDHCPServ is a very tiny and uncommonly DHCP server as a "Rescue Tool".
 
 This server only works to send the network settings to a part of PCs into Network without any other DHCP servers.
 Therefore this server *doesn't* have many functions that other servers have.
-And this server *doesn't* compliant exactlry with RFC2131.
+And this server *doesn't* compliant exactlry with [RFC2131](https://www.ietf.org/rfc/rfc2131.txt).
+
 I assume that this server should be terminated quickly after use(after sending the network settings to a target PC).
 
 ## Usage
