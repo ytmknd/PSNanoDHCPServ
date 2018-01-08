@@ -76,7 +76,9 @@ $udpclient.EnableBroadcast = true;
 
 # Recv
 set-variable -name CMD_PARSER_NOT_IMPLEMENTED -value "CMDParseOption_NotImplemented" -option constant
+set-variable -name CMD_PARSE_OPTION_ASCII -value "CMDParseOption_Ascii" -option constant
 set-variable -name CMD_PARSE_OPTION_DUMP -value "CMDParseOption_Dump" -option constant
+set-variable -name CMD_PARSE_OPTION_DUMP_IP -value "CMDParseOption_DumpIPAddress" -option constant
 # Send
 set-variable -name CMD_GET_NOT_IMPLEMENTED -value "getCMD_NotImplemented" -option constant
 set-variable -name CMD_GET_OPTIONSEQ_IPV4 -value "getCMDAndIPv4Address4DHCPOption" -option constant
@@ -85,10 +87,10 @@ $DHCPOptionTable=@(
 <#  0#> @("Pad.","CMDParseOption_Pad",$CMD_PARSER_NOT_IMPLEMENTED),
 <#  1#> @("Subnet Mask.",$CMD_PARSE_OPTION_DUMP,"getSubnetMask4DHCPOption"),
 <#  2#> @("Time Offset (deprecated).",$CMD_PARSER_NOT_IMPLEMENTED),
-<#  3#> @("Router.",$CMD_PARSER_NOT_IMPLEMENTED,$CMD_GET_OPTIONSEQ_IPV4),
+<#  3#> @("Router.",$CMD_PARSE_OPTION_DUMP_IP,$CMD_GET_OPTIONSEQ_IPV4),
 <#  4#> @("Time Server.",$CMD_PARSER_NOT_IMPLEMENTED),
 <#  5#> @("Name Server.",$CMD_PARSER_NOT_IMPLEMENTED),
-<#  6#> @("Domain Name Server.",$CMD_PARSER_NOT_IMPLEMENTED,$CMD_GET_OPTIONSEQ_IPV4),
+<#  6#> @("Domain Name Server.",$CMD_PARSE_OPTION_DUMP_IP,$CMD_GET_OPTIONSEQ_IPV4),
 <#  7#> @("Log Server.",$CMD_PARSER_NOT_IMPLEMENTED),
 <#  8#> @("Quote Server.",$CMD_PARSER_NOT_IMPLEMENTED),
 <#  9#> @("LPR Server.",$CMD_PARSER_NOT_IMPLEMENTED),
@@ -97,7 +99,7 @@ $DHCPOptionTable=@(
 <# 12#> @("Host Name.","CMDParseOption_Ascii",$CMD_PARSER_NOT_IMPLEMENTED),
 <# 13#> @("Boot File Size.",$CMD_PARSER_NOT_IMPLEMENTED),
 <# 14#> @("Merit Dump File.",$CMD_PARSER_NOT_IMPLEMENTED),
-<# 15#> @("Domain Name.",$CMD_PARSER_NOT_IMPLEMENTED,$CMD_GET_OPTIONSEQ_ASCII),
+<# 15#> @("Domain Name.",$CMD_PARSE_OPTION_ASCII,$CMD_GET_OPTIONSEQ_ASCII),
 <# 16#> @("Swap Server.",$CMD_PARSER_NOT_IMPLEMENTED),
 <# 17#> @("Root Path.",$CMD_PARSER_NOT_IMPLEMENTED),
 <# 18#> @("Extensions Path.",$CMD_PARSER_NOT_IMPLEMENTED),
@@ -126,17 +128,17 @@ $DHCPOptionTable=@(
 <# 41#> @("Network Information Servers.",$CMD_PARSER_NOT_IMPLEMENTED),
 <# 42#> @("NTP servers.",$CMD_PARSER_NOT_IMPLEMENTED),
 <# 43#> @("Vendor specific information.",$CMD_PARSER_NOT_IMPLEMENTED),
-<# 44#> @("NetBIOS over TCP/IP name server.",$CMD_PARSER_NOT_IMPLEMENTED,$CMD_GET_OPTIONSEQ_IPV4),
+<# 44#> @("NetBIOS over TCP/IP name server.",$CMD_PARSE_OPTION_DUMP_IP,$CMD_GET_OPTIONSEQ_IPV4),
 <# 45#> @("NetBIOS over TCP/IP Datagram Distribution Server.",$CMD_PARSER_NOT_IMPLEMENTED),
 <# 46#> @("NetBIOS over TCP/IP Node Type.",$CMD_PARSER_NOT_IMPLEMENTED),
 <# 47#> @("NetBIOS over TCP/IP Scope.",$CMD_PARSER_NOT_IMPLEMENTED),
 <# 48#> @("X Window System Font Server.",$CMD_PARSER_NOT_IMPLEMENTED),
 <# 49#> @("X Window System Display Manager.",$CMD_PARSER_NOT_IMPLEMENTED),
-<# 50#> @("Requested IP Address.","CMDParseOption_RequestedIPAddress"),
+<# 50#> @("Requested IP Address.",$CMD_PARSE_OPTION_DUMP_IP),
 <# 51#> @("IP address lease time.",$CMD_PARSE_OPTION_DUMP,"getIPAddressLeaseTime4DHCPOption"),
 <# 52#> @("Option overload.",$CMD_PARSER_NOT_IMPLEMENTED),
 <# 53#> @("DHCP message type.","CMDParseOption_DHCPMessageType","getDHCPMessageType4DHCPOption"),
-<# 54#> @("Server identifier.",$CMD_PARSER_NOT_IMPLEMENTED,"getServerIdentifier4DHCPOption"),
+<# 54#> @("Server identifier.",$CMD_PARSE_OPTION_DUMP_IP,"getServerIdentifier4DHCPOption"),
 <# 55#> @("Parameter request list.",$CMD_PARSE_OPTION_DUMP),
 <# 56#> @("Message.",$CMD_PARSER_NOT_IMPLEMENTED),
 <# 57#> @("Maximum DHCP message size.",$CMD_PARSE_OPTION_DUMP),
@@ -664,6 +666,9 @@ function lcl_buildDHCPOFFERPacket() {
     $headpos=ForwardHeadPos
     setEndMark2DHCPOption
     setDHCPOption2UDPPacket $dhcpOptions
+}
+function replyDHCPOFFER() {
+    lcl_buildDHCPOFFERPacket
 
     Set-Variable -Name "dhcpOptions" -Scope global -Value $dhcpOptions 
     $count=0
@@ -687,9 +692,6 @@ function lcl_buildDHCPOFFERPacket() {
     #Write-Debug("DEBUG $($ClientIPAddress)")
     $endpoint = new-object System.Net.IPEndPoint (([system.net.IPAddress]::Parse($ClientIPAddress)),68)
     $bytesSent=$udpclient.Send($b,($b.length),$endpoint)
-}
-function replyDHCPOFFER() {
-    lcl_buildDHCPOFFERPacket
 }
 function lcl_buildDHCPPACKPacket() {
     ##Header
@@ -729,6 +731,9 @@ function lcl_buildDHCPPACKPacket() {
     $headpos=ForwardHeadPos
     setEndMark2DHCPOption
     setDHCPOption2UDPPacket $dhcpOptions
+}
+function replyDHCPPACK() {
+    lcl_buildDHCPPACKPacket
 
     Set-Variable -Name "dhcpOptions" -Scope global -Value $dhcpOptions 
     $count=0
@@ -752,9 +757,6 @@ function lcl_buildDHCPPACKPacket() {
     #Write-Debug("DEBUG $($ClientIPAddress)")
     $endpoint = new-object System.Net.IPEndPoint (([system.net.IPAddress]::Parse($ClientIPAddress)),68)
     $bytesSent=$udpclient.Send($b,($b.length),$endpoint)
-}
-function replyDHCPPACK() {
-    lcl_buildDHCPPACKPacket
 }
 # Dump UDP packet
 function CMDParseOption_NotImplemented() {
@@ -800,7 +802,7 @@ function lcl_getDHCPOptionMessage() {
 function CMDParseOption_DHCPMessageType() { #53 DHCP message type.
     return lcl_getDHCPOptionMessage
 }
-function CMDParseOption_RequestedIPAddress() { #50 Requested IP Address..
+function CMDParseOption_DumpIPAddress() { #50 Requested IP Address..
     $ret =""
     $i = getVEXTLength
     foreach($d in $dhcpOptions[($headpos+2)..($headpos+2+$i-1)]) {
