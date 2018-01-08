@@ -61,11 +61,11 @@ $clientIPAddressEndAddress = @(0,0,0,0)
 
 # Recv
 ## UDP packet buffer
-$udpPacketRecv = @(0) * 300
+$udpPacketRecv = @("00") * 300
 # Send
 ## UDP packet buffer
-$udpPacketSend = @(0) * 300
-## DHCP option
+$udpPacketSend = @("00") * 300
+## DHCP option(for send and recieve)
 $global:dhcpOptions = @("00") * 64
 $global:headpos = 4 # skip magic 
 
