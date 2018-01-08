@@ -1007,7 +1007,7 @@ function mainloop() {
                 echo("Recieved DHCPREQUEST message.")
                 $TransactionID = ([string]::Join("", $udpPacketRecv[4..7]))
                 $ClientIPAddress = lcl_convertIPAddress ([string]::Join(".", $udpPacketRecv[12..15]))
-                Write-Debug($requestedIPAddress)
+                #Write-Debug($requestedIPAddress)
                 $ClientHardwareAddress = ([string]::Join("", $udpPacketRecv[28..33]))
                 if ($noreplymode -ne $TRUE) { replyDHCPPACK }
                 }
@@ -1029,6 +1029,11 @@ function mainloop() {
             }
             $MSG_DHCPINFRM{
                 echo("Recieved DHCPINFRM message.")
+                $TransactionID = ([string]::Join("", $udpPacketRecv[4..7]))
+                $ClientIPAddress = lcl_convertIPAddress ([string]::Join(".", $udpPacketRecv[12..15]))
+                #Write-Debug($requestedIPAddress)
+                $ClientHardwareAddress = ([string]::Join("", $udpPacketRecv[28..33]))
+                if ($noreplymode -ne $TRUE) { replyDHCPPACK }
                 echo("Do nothing.")
             }
             default { 
