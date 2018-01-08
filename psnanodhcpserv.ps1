@@ -1004,6 +1004,10 @@ function mainloop() {
                 $ClientHardwareAddress = ([string]::Join("", $udpPacketRecv[28..33]))
                 if ($noreplymode -ne $TRUE) { replyDHCPOFFER } 
                 }
+            $MSG_DHCPOFFER {
+                echo("Recieved DHCPOFFER message.")
+                echo("Do nothing.")
+            }
             $MSG_DHCPREQUEST { 
                 echo("Recieved DHCPREQUEST message.")
                 $TransactionID = ([string]::Join("", $udpPacketRecv[4..7]))
@@ -1012,7 +1016,19 @@ function mainloop() {
                 $ClientHardwareAddress = ([string]::Join("", $udpPacketRecv[28..33]))
                 if ($noreplymode -ne $TRUE) { replyDHCPPACK }
                 }
-            default { echo("Do nothing.")}
+            $MSG_DHCPDECLINE {
+                echo("Recieved DHCPDECLINE message.")
+                echo("Do nothing.")
+            }
+            $MSG_DHCPPACK {
+                echo("Recieved DHCPPACK message.")
+                echo("Do nothing.")
+            }
+            $MSG_DHCPPNCK{
+                echo("Recieved DHCPPNCK message.")
+                echo("Do nothing.")
+            }
+            default { echo("Do nothing.") }
         }
     }
 }
