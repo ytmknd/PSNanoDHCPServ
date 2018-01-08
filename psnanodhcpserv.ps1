@@ -498,6 +498,7 @@ function setCodeAndOption2DHCPOption($data) {
     for($i=0;$i -lt $data.length;$i++) {
         $dhcpOptions[($headpos + $i)] = $data[$i]
     }
+    #echo("$([string]::Join(" ",$data)):$($i)//")
 }
 function setEndMark2DHCPOption() { 
     $dhcpOptions[$headpos] = "FF" 
@@ -508,6 +509,7 @@ function lcl_getVEXTLength() {
 }
 function ForwardHeadPos() {
     $i = lcl_getVEXTLength
+    #Write-Debug "$($headpos+2+$i)"
     return $headpos+2+$i
 }
 function getOptionSeq4DHCPOption([array]$opt) {
@@ -646,8 +648,8 @@ function lcl_buildDHCPOFFERPacket() {
     setBootFilename2UDPPacket
     ##Option
     clearDHCPOptionsBuf
-    Set-Variable -Name "headpos" -Scope global -Value 4 
     setMagic2DHCPOption
+    Set-Variable -Name "headpos" -Scope global -Value 4 
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "DHCP message type.",$MSG_DHCPOFFER) # Option: (53) DHCP Message Type (OFFER)
     $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Server identifier.",$ServerIdentifier) # Option: (54) DHCP Server Identifier
@@ -670,7 +672,7 @@ function lcl_buildDHCPOFFERPacket() {
 function replyDHCPOFFER() {
     lcl_buildDHCPOFFERPacket
 
-    Set-Variable -Name "dhcpOptions" -Scope global -Value $dhcpOptions 
+    #Set-Variable -Name "dhcpOptions" -Scope global -Value $dhcpOptions 
     $count=0
     foreach($e in $dhcpOptions) {
         [System.Console]::Write($d + " ")
@@ -711,8 +713,8 @@ function lcl_buildDHCPPACKPacket() {
     setBootFilename2UDPPacket
     ##Option
     clearDHCPOptionsBuf
-    Set-Variable -Name "headpos" -Scope global -Value 4 
     setMagic2DHCPOption
+    Set-Variable -Name "headpos" -Scope global -Value 4 
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "DHCP message type.",$MSG_DHCPPACK) # Option: (53) DHCP Message Type (ACK)
     $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Server identifier.",$ServerIdentifier) # Option: (54) DHCP Server Identifier
@@ -735,7 +737,7 @@ function lcl_buildDHCPPACKPacket() {
 function replyDHCPPACK() {
     lcl_buildDHCPPACKPacket
 
-    Set-Variable -Name "dhcpOptions" -Scope global -Value $dhcpOptions 
+    #Set-Variable -Name "dhcpOptions" -Scope global -Value $dhcpOptions 
     $count=0
     foreach($e in $dhcpOptions) {
         [System.Console]::Write($e + " ")
@@ -986,7 +988,10 @@ function mainloop() {
     while(1) {
         $content = $udpclient.Receive([ref]$endpoint)
         $udpPacketRecv = [bitconverter]::ToString($content).split("-")
-        $dhcpOptions = $udpPacketRecv[236..299]
+        #$dhcpOptions = $udpPacketRecv[236..299]
+        for($i=0;$i -lt 64;$i++) {
+            $dhcpOptions[$i] = ($udpPacketRecv[236+$i])
+        }
 
         echo ("I recieved a BOOTP/DHCP packet-->")
         echoDHCPPcakcetRecv
