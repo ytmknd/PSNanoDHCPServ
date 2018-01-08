@@ -550,6 +550,9 @@ set-variable -name MSG_DHCPREQUEST -value "DHCPREQUEST" -option constant
 set-variable -name MSG_DHCPDECLINE -value "DHCPDECLINE" -option constant
 set-variable -name MSG_DHCPPACK -value "DHCPPACK" -option constant
 set-variable -name MSG_DHCPPNCK -value "DHCPPNCK" -option constant
+set-variable -name MSG_DHCPRELEASE -value "DHCPRELEASE" -option constant
+set-variable -name MSG_DHCPINFRM -value "DHCPINFRM" -option constant
+
 function getDHCPMessageType4DHCPOption([int]$num, [array]$opt) {     
     #Write-Debug "$($num) $($opt[0])"
     $ret = @( $num.ToString("X2"), "01" )
@@ -560,6 +563,8 @@ function getDHCPMessageType4DHCPOption([int]$num, [array]$opt) {
         $MSG_DHCPDECLINE { $ret+="04" }
         $MSG_DHCPPACK { $ret+="05" }
         $MSG_DHCPPNCK { $ret+="06" }
+        $MSG_DHCPRELEASE { $ret+="07" }
+        $MSG_DHCPINFRM { $ret+="08" }
         default{         
             throw "Exception : Illegal parameter(" + $MyInvocation.MyCommand + ")" 
         }
@@ -791,7 +796,9 @@ function lcl_getDHCPOptionMessage() {
         "04"{ $ret=$MSG_DHCPDECLINE }
         "05"{ $ret=$MSG_DHCPPACK }
         "06"{ $ret=$MSG_DHCPPNCK }
-        default{ $ret="UNKNOWNMESSAGE" }
+        "07"{ $ret=$MSG_DHCPRELEASE }
+        "08"{ $ret=$MSG_DHCPINFRM }
+        default{ $ret="UNKNOWNMESSAGE(0x$($rawdata))" }
     }
     return $ret
 }
@@ -1016,7 +1023,18 @@ function mainloop() {
                 echo("Recieved DHCPPNCK message.")
                 echo("Do nothing.")
             }
-            default { echo("Do nothing.") }
+            $MSG_DHCPRELEASE{
+                echo("Recieved DHCPRELEASE message.")
+                echo("Do nothing.")
+            }
+            $MSG_DHCPINFRM{
+                echo("Recieved DHCPINFRM message.")
+                echo("Do nothing.")
+            }
+            default { 
+                echo("Recieved unknown message.")
+                echo("Do nothing.") 
+            }
         }
     }
 }
