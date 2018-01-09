@@ -677,7 +677,7 @@ function lcl_buildDHCPOFFERPacket() {
 function replyDHCPOFFER() {
     lcl_buildDHCPOFFERPacket
 
-    #Set-Variable -Name "dhcpOptions" -Scope global -Value $dhcpOptions 
+    echo ("DHCP options.") # debug
     $count=0
     foreach($e in $dhcpOptions) {
         [System.Console]::Write($d + " ")
@@ -739,7 +739,7 @@ function lcl_buildDHCPPACKPacket() {
 function replyDHCPPACK() {
     lcl_buildDHCPPACKPacket
 
-    #Set-Variable -Name "dhcpOptions" -Scope global -Value $dhcpOptions 
+    echo ("DHCP options.") # debug
     $count=0
     foreach($e in $dhcpOptions) {
         [System.Console]::Write($e + " ")
