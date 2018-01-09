@@ -55,6 +55,9 @@ $DomainName = "tempdomain"
 $NetBIOSOverTCPIPNameServer = "192.168.10.1"
 #
 $global:requestedIPAddress = "127.0.0.1"
+$global:endpointIPAddress = "0.0.0.0"
+$global:endpointPort = "0"
+
 #
 $clientIPAddressStartAddress = @(0,0,0,0)   
 $clientIPAddressEndAddress = @(0,0,0,0)   
@@ -694,7 +697,7 @@ function replyDHCPOFFER() {
     foreach($d in $udpPacketSend) {
         $b += [Byte]::Parse(([Convert]::ToInt32($d,16)), [System.Globalization.NumberStyles]::Integer) 
     }
-    $endpoint = new-object System.Net.IPEndPoint (([system.net.IPAddress]::Parse($ClientIPAddress)),68)
+    $endpoint = new-object System.Net.IPEndPoint (([system.net.IPAddress]::Parse($endpointIPAddress)),68)
     $bytesSent=$udpclient.Send($b,($b.length),$endpoint)
 }
 function lcl_buildDHCPPACKPacket() {
@@ -756,7 +759,7 @@ function replyDHCPPACK() {
     foreach($d in $udpPacketSend) {
         $b += [Byte]::Parse(([Convert]::ToInt32($d,16)), [System.Globalization.NumberStyles]::Integer) 
     }
-    $endpoint = new-object System.Net.IPEndPoint (([system.net.IPAddress]::Parse($ClientIPAddress)),68)
+    $endpoint = new-object System.Net.IPEndPoint (([system.net.IPAddress]::Parse($endpointIPAddress)),68)
     $bytesSent=$udpclient.Send($b,($b.length),$endpoint)
 }
 # Dump UDP packet
@@ -982,11 +985,11 @@ function getClientIPStartAndEndAddress() {
 function mainloop() {
     while(1) {
         $content = $udpclient.Receive([ref]$endpoint)
-        Write-Debug("This message was sent from $($endpoint.Address.ToString())($($endpoint.Port.ToString()))");
+        Set-Variable -Name "endpointIPAddress" -Scope global -Value $endpoint.Address.ToString()
+        Set-Variable -Name "endpointPort" -Scope global -Value $endpoint.Port.ToString()         
         $udpPacketRecv = [bitconverter]::ToString($content).split("-")
-        #$dhcpOptions = $udpPacketRecv[236..299]
         for($i=0;$i -lt 64;$i++) {
-            $dhcpOptions[$i] = ($udpPacketRecv[236+$i])
+            $dhcpOptions[$i] = ($udpPacketRecv[236+$i]) # $udpPacketRecv[236..299]
         }
 
         echo ("I recieved a BOOTP/DHCP packet-->")
