@@ -25,7 +25,7 @@
 [CmdletBinding()]
 Param(
     [Parameter(Mandatory=$TRUE,Position=1)]
-    [string]$clientIPAddressesWithBitmask,
+    [string]$clientIPAddresses,
 
     [Parameter(Mandatory=$TRUE,Position=2)]
     [string]$subnetMask,
@@ -947,43 +947,43 @@ function getClientIPStartAndEndAddress() {
     $clientIPAddressStartAddressTemp = @("00") * 4 
     $clientIPAddressEndAddressTemp = @("00") * 4
     
-    if ($clientIPAddressesWithBitmask.Contains("-")) { # xxx.xxx.xxx.xxx-yyy.yyy.yyy.yyy
-        $a = $clientIPAddressesWithBitmask.Split("-") 
+    if ($clientIPAddresses.Contains("-")) { # xxx.xxx.xxx.xxx-yyy.yyy.yyy.yyy
+        $a = $clientIPAddresses.Split("-") 
         $si = ($a[0]).split(".")
         $ei = ($a[1]).split(".")
-        if ($si.length -ne 4) { throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" }
-        if ($ei.length -ne 4) { throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" }
+        if ($si.length -ne 4) { throw "Exception : Illegal parameter(clientIPAddresses)" }
+        if ($ei.length -ne 4) { throw "Exception : Illegal parameter(clientIPAddresses)" }
         for($i=0;$i -lt 3;$i++) { # 1-3 octets
             if (([Convert]::ToInt32($si[$i]) -gt 255) -Or (([Convert]::ToInt32($si[$i]) -lt 0))) { 
-                throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" 
+                throw "Exception : Illegal parameter(clientIPAddresses)" 
             }
             if (([Convert]::ToInt32($ei[$i]) -gt 255) -Or (([Convert]::ToInt32($ei[$i]) -lt 0))) { 
-                throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" 
+                throw "Exception : Illegal parameter(clientIPAddresses)" 
             }
             if ( $si[$i] -ne $ei[$i] ) { 
-                throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" 
+                throw "Exception : Illegal parameter(clientIPAddresses)" 
             }
             $clientIPAddressStartAddressTemp[$i] = $si[$i]
             $clientIPAddressEndAddressTemp[$i] = $ei[$i]
         }
         # 4 octet
         if (([Convert]::ToInt32($si[3]) -gt 255) -Or (([Convert]::ToInt32($si[3]) -lt 0))) { 
-            throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" 
+            throw "Exception : Illegal parameter(clientIPAddresses)" 
         }
         if (([Convert]::ToInt32($ei[3]) -gt 255) -Or (([Convert]::ToInt32($ei[3]) -lt 0))) { 
-            throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" 
+            throw "Exception : Illegal parameter(clientIPAddresses)" 
         }
         if (-not (([Convert]::ToInt32($si[3])) -lt ([Convert]::ToInt32($ei[3])))) { 
-            throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" 
+            throw "Exception : Illegal parameter(clientIPAddresses)" 
         }
         $clientIPAddressStartAddressTemp[3] = $si[3]
         $clientIPAddressEndAddressTemp[3] = $ei[3]
     } else { # xxx.xxx.xxx.xxx
-        $ba = ($clientIPAddressesWithBitmask).split(".")
-        if ($ba.length -ne 4) { throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" }
+        $ba = ($clientIPAddresses).split(".")
+        if ($ba.length -ne 4) { throw "Exception : Illegal parameter(clientIPAddresses)" }
         for($i=0;$i -lt 4;$i++) {
             if (([Convert]::ToInt32($ba[$i]) -gt 255) -Or (([Convert]::ToInt32($ba[$i]) -lt 0))) { 
-                throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" 
+                throw "Exception : Illegal parameter(clientIPAddresses)" 
             }
             $clientIPAddressStartAddress[$i] = $ba[$i]
         }
