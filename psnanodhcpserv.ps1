@@ -947,7 +947,7 @@ function getClientIPStartAndEndAddress() {
     $clientIPAddressStartAddressTemp = @("00") * 4 
     $clientIPAddressEndAddressTemp = @("00") * 4
     
-    if ($clientIPAddressesWithBitmask.Contains("-")) { # xxx.xxx.xxx.xxx-xxx.xxx.xxx.yyy
+    if ($clientIPAddressesWithBitmask.Contains("-")) { # xxx.xxx.xxx.xxx-yyy.yyy.yyy.yyy
         $a = $clientIPAddressesWithBitmask.Split("-") 
         $si = ($a[0]).split(".")
         $ei = ($a[1]).split(".")
