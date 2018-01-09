@@ -27,13 +27,13 @@ Param(
     [Parameter(Mandatory=$TRUE,Position=1)]
     [string]$clientIPAddressesWithBitmask,
 
-    [Parameter(Mandatory=$FALSE,Position=2)]
+    [Parameter(Mandatory=$TRUE,Position=2)]
     [string]$subnetMask,
 
-    [Parameter(Mandatory=$FALSE,Position=3)]
+    [Parameter(Mandatory=$TRUE,Position=3)]
     [string]$defaultGatewayAddress,
 
-    [Parameter(Mandatory=$FALSE,Position=4)]
+    [Parameter(Mandatory=$TRUE,Position=4)]
     [string]$dnsServerAddress,
 
     [Parameter(Mandatory=$FALSE,Position=5)]
@@ -48,19 +48,18 @@ $TransactionID = "00000000"
 $ClientIPAddress = "127.0.0.1"
 $ClientHardwareAddress = "112233445566"
 $ServerIdentifier = "192.168.10.5"
-$SubnetMask = "255.255.255.0"
-$Router = "192.168.10.1"
-$DomainNameServer = "192.168.10.1"
+
+$global:clientIPAddressStartAddress = @(0,0,0,0)   
+$global:clientIPAddressEndAddress = @(0,0,0,0)   
+$global:SubnetMask = "255.255.255.0"
+$global:Router = "10.10.10.1"
+$global:DomainNameServer = "10.10.10.1"
 $DomainName = "tempdomain"
 $NetBIOSOverTCPIPNameServer = "192.168.10.1"
 #
 $global:requestedIPAddress = "127.0.0.1"
 $global:endpointIPAddress = "0.0.0.0"
 $global:endpointPort = "0"
-
-#
-$clientIPAddressStartAddress = @(0,0,0,0)   
-$clientIPAddressEndAddress = @(0,0,0,0)   
 
 # Recv
 ## UDP packet buffer
@@ -934,7 +933,7 @@ function lcl_findLeasableIPAddress() {
     if ($clientIPAddressStartAddress -eq $clientIPAddressEndAddress) {
         return (lcl_getIPAdressString $clientIPAddressStartAddress[3]);
     } else {
-        for($i=$clientIPAddressStartAddress[3]+1;$i -le $clientIPAddressEndAddress[3];$i++) {
+        for($i=$clientIPAddressStartAddress[3];$i -le $clientIPAddressEndAddress[3];$i++) {
             if (IsLeasedIPAdress($i)) {
                 return (lcl_getIPAdressString $i)
             }
@@ -944,29 +943,42 @@ function lcl_findLeasableIPAddress() {
 }
 
 function getClientIPStartAndEndAddress() {
-    Write-Debug $clientIPAddressesWithBitmask
     #IPv4 only
-    if ($clientIPAddressesWithBitmask.Contains("/")) {     # xxx.xxx.xxx.xxx/mm (24 <= mm <= 32)
-        $a = $clientIPAddressesWithBitmask.Split("/")
-        $ba = ($a[0]).split(".")
-        $mask = $a[1]
-        if (([Convert]::ToInt32($mask) -lt 24) -Or (([Convert]::ToInt32($mask) -gt 32))) { 
-            throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" 
-        }
-        if ($ba.length -ne 4) { throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" }
-        for($i=0;$i -lt 4;$i++) {
-            if (([Convert]::ToInt32($ba[$i]) -gt 255) -Or (([Convert]::ToInt32($ba[$i]) -lt 0))) { 
+    $clientIPAddressStartAddressTemp = @("00") * 4 
+    $clientIPAddressEndAddressTemp = @("00") * 4
+    
+    if ($clientIPAddressesWithBitmask.Contains("-")) { # xxx.xxx.xxx.xxx-xxx.xxx.xxx.yyy
+        $a = $clientIPAddressesWithBitmask.Split("-") 
+        $si = ($a[0]).split(".")
+        $ei = ($a[1]).split(".")
+        if ($si.length -ne 4) { throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" }
+        if ($ei.length -ne 4) { throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" }
+        for($i=0;$i -lt 3;$i++) { # 1-3 octets
+            if (([Convert]::ToInt32($si[$i]) -gt 255) -Or (([Convert]::ToInt32($si[$i]) -lt 0))) { 
                 throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" 
             }
-            $clientIPAddressStartAddress[$i] = $ba[$i]
+            if (([Convert]::ToInt32($ei[$i]) -gt 255) -Or (([Convert]::ToInt32($ei[$i]) -lt 0))) { 
+                throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" 
+            }
+            if ( $si[$i] -ne $ei[$i] ) { 
+                throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" 
+            }
+            $clientIPAddressStartAddressTemp[$i] = $si[$i]
+            $clientIPAddressEndAddressTemp[$i] = $ei[$i]
         }
-        $clientIPAddressStartAddress[3] = $clientIPAddressStartAddress[3] -band ((255 -shl (32 - $mask)) -band 255)
-
-        $clientIPAddressEndAddress[0] = $clientIPAddressStartAddress[0] 
-        $clientIPAddressEndAddress[1] = $clientIPAddressStartAddress[1] 
-        $clientIPAddressEndAddress[2] = $clientIPAddressStartAddress[2] 
-        $clientIPAddressEndAddress[3] = $clientIPAddressStartAddress[3] -bor (( 65535 -bxor (255 -shl (32 - $mask))) -band 255)
-    } else {    # xxx.xxx.xxx.xxx
+        # 4 octet
+        if (([Convert]::ToInt32($si[3]) -gt 255) -Or (([Convert]::ToInt32($si[3]) -lt 0))) { 
+            throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" 
+        }
+        if (([Convert]::ToInt32($ei[3]) -gt 255) -Or (([Convert]::ToInt32($ei[3]) -lt 0))) { 
+            throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" 
+        }
+        if (-not (([Convert]::ToInt32($si[3])) -lt ([Convert]::ToInt32($ei[3])))) { 
+            throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" 
+        }
+        $clientIPAddressStartAddressTemp[3] = $si[3]
+        $clientIPAddressEndAddressTemp[3] = $ei[3]
+    } else { # xxx.xxx.xxx.xxx
         $ba = ($clientIPAddressesWithBitmask).split(".")
         if ($ba.length -ne 4) { throw "Exception : Illegal parameter(clientIPAddressesWithBitmask)" }
         for($i=0;$i -lt 4;$i++) {
@@ -975,11 +987,49 @@ function getClientIPStartAndEndAddress() {
             }
             $clientIPAddressStartAddress[$i] = $ba[$i]
         }
-        $clientIPAddressEndAddress[0] = $clientIPAddressStartAddress[0] 
-        $clientIPAddressEndAddress[1] = $clientIPAddressStartAddress[1] 
-        $clientIPAddressEndAddress[2] = $clientIPAddressStartAddress[2] 
-        $clientIPAddressEndAddress[3] = $clientIPAddressStartAddress[3]         
+        $clientIPAddressEndAddressTemp[0] = $clientIPAddressStartAddressTemp[0] 
+        $clientIPAddressEndAddressTemp[1] = $clientIPAddressStartAddressTemp[1] 
+        $clientIPAddressEndAddressTemp[2] = $clientIPAddressStartAddressTemp[2] 
+        $clientIPAddressEndAddressTemp[3] = $clientIPAddressStartAddressTemp[3]         
     }
+
+    Set-Variable -Name "clientIPAddressStartAddress" -Scope global -Value $clientIPAddressStartAddressTemp
+    Set-Variable -Name "clientIPAddressEndAddress" -Scope global -Value $clientIPAddressEndAddressTemp
+}
+
+function getSubnetMask () {
+    #IPv4 only
+    $ba = ($subnetMask).split(".")
+    if ($ba.length -ne 4) { throw "Exception : Illegal parameter(subnetMask)" }
+    for($i=0;$i -lt 4;$i++) {
+        if (([Convert]::ToInt32($ba[$i]) -gt 255) -Or (([Convert]::ToInt32($ba[$i]) -lt 0))) { 
+            throw "Exception : Illegal parameter(subnetMask)" 
+        }
+    }
+    Set-Variable -Name "SubnetMask" -Scope global -Value $subnetMask
+}
+function getDefaultGatewayAddress() {
+    #IPv4 only
+    $ba = ($defaultGatewayAddress).split(".")
+    if ($ba.length -ne 4) { throw "Exception : Illegal parameter(defaultGatewayAddress)" }
+    for($i=0;$i -lt 4;$i++) {
+        if (([Convert]::ToInt32($ba[$i]) -gt 255) -Or (([Convert]::ToInt32($ba[$i]) -lt 0))) { 
+            throw "Exception : Illegal parameter(defaultGatewayAddress)" 
+        }
+    }
+    Set-Variable -Name "Router" -Scope global -Value $defaultGatewayAddress
+}
+
+function getDnsServerAddress() {
+    #IPv4 only
+    $ba = ($dnsServerAddress).split(".")
+    if ($ba.length -ne 4) { throw "Exception : Illegal parameter(dnsServerAddress)" }
+    for($i=0;$i -lt 4;$i++) {
+        if (([Convert]::ToInt32($ba[$i]) -gt 255) -Or (([Convert]::ToInt32($ba[$i]) -lt 0))) { 
+            throw "Exception : Illegal parameter(dnsServerAddress)" 
+        }
+    }
+    Set-Variable -Name "DomainNameServer" -Scope global -Value $dnsServerAddress
 }
 
 function mainloop() {
@@ -1049,5 +1099,8 @@ function mainloop() {
 }
 
 getClientIPStartAndEndAddress
+getSubnetMask
+getDefaultGatewayAddress
+getDnsServerAddress
 
 mainloop
