@@ -19,6 +19,7 @@ I assume that this server should be terminated quickly after use(after sending t
 
 - *You must run this script as administrator or root.*
 - *Currently supports IPv4 addresses only.*
+- You can use *-noreplymode* option.
 
 ## Requirement
 
