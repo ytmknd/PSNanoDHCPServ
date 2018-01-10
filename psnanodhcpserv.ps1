@@ -1038,8 +1038,12 @@ function mainloop() {
                 $TransactionID = ([string]::Join("", $udpPacketRecv[4..7]))
                 $ClientIPAddress = (getLeasableIPAddress)
                 $ClientHardwareAddress = ([string]::Join("", $udpPacketRecv[28..33]))
-                if ($noreplymode -ne $TRUE) { replyDHCPOFFER } 
-                echo("-->Send packet.")
+                if ($noreplymode -ne $TRUE) { 
+                    replyDHCPOFFER 
+                    echo("-->Send packet.")
+                } else {
+                    echo("-->Do nothing(noreplymode).")
+                }
                 }
             $MSG_DHCPOFFER {
                 echo("-->Recieved DHCPOFFER message.")
@@ -1051,8 +1055,12 @@ function mainloop() {
                 $TransactionID = ([string]::Join("", $udpPacketRecv[4..7]))
                 $ClientIPAddress = lcl_convertIPAddress ([string]::Join(".", $udpPacketRecv[12..15]))
                 $ClientHardwareAddress = ([string]::Join("", $udpPacketRecv[28..33]))
-                if ($noreplymode -ne $TRUE) { replyDHCPPACK }
-                echo("-->Send packet.")
+                if ($noreplymode -ne $TRUE) { 
+                    replyDHCPPACK 
+                    echo("-->Send packet.")
+                } else {
+                    echo("-->Do nothing(noreplymode).")
+                }
                 }
             $MSG_DHCPDECLINE {
                 echo("-->Recieved DHCPDECLINE message.")
