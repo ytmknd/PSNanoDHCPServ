@@ -57,7 +57,7 @@ $global:DomainNameServer = "10.10.10.1"
 $DomainName = "tempdomain"
 $NetBIOSOverTCPIPNameServer = "192.168.10.1"
 #
-$global:requestedIPAddress = "127.0.0.1"
+$global:requestedIPAddress = "0.0.0.0"
 $global:endpointIPAddress = "0.0.0.0"
 $global:endpointPort = "0"
 
@@ -656,7 +656,7 @@ function lcl_buildDHCPOFFERPacket() {
     setTransactionID2UDPPacket $TransactionID
     setNumberOfSeconds2UDPPacket
     setFlagsOfSeconds2UDPPacket
-    setClientIPAddress2UDPPacket $ClientIPAddress
+    setClientIPAddress2UDPPacket (getLeasableIPAddress)
     setYourIPAddress2UDPPacket "0.0.0.0"
     setServerIPAddress2UDPPacket "0.0.0.0"
     setGatewayIPAddress2UDPPacket "0.0.0.0"
@@ -704,7 +704,11 @@ function lcl_buildDHCPPACKPacket() {
     setTransactionID2UDPPacket $TransactionID
     setNumberOfSeconds2UDPPacket
     setFlagsOfSeconds2UDPPacket
-    setClientIPAddress2UDPPacket $requestedIPAddress
+    if ($requestedIPAddress -ne "0.0.0.0") {
+        setClientIPAddress2UDPPacket $requestedIPAddress
+    } else {
+        setClientIPAddress2UDPPacket (getLeasableIPAddress)   
+    }
     setYourIPAddress2UDPPacket "0.0.0.0"
     setServerIPAddress2UDPPacket "0.0.0.0"
     setGatewayIPAddress2UDPPacket "0.0.0.0"
@@ -911,7 +915,7 @@ function lcl_getIPAdressString ($fthoct) {
     $ret+=$i.ToString($null)
     return $ret;  
 }
-function lcl_findLeasableIPAddress() {
+function getLeasableIPAddress() {
     if ($clientIPAddressStartAddress -eq $clientIPAddressEndAddress) {
         return (lcl_getIPAdressString $clientIPAddressStartAddress[3]);
     } else {
@@ -1031,7 +1035,7 @@ function mainloop() {
             $MSG_DHCPDISCOVER { 
                 echo("Recieved DHCPDISCOVER message.")
                 $TransactionID = ([string]::Join("", $udpPacketRecv[4..7]))
-                $ClientIPAddress = lcl_findLeasableIPAddress
+                $ClientIPAddress = (getLeasableIPAddress)
                 $ClientHardwareAddress = ([string]::Join("", $udpPacketRecv[28..33]))
                 if ($noreplymode -ne $TRUE) { replyDHCPOFFER } 
                 }
