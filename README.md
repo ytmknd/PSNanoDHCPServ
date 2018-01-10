@@ -16,7 +16,9 @@ I assume that this server should be terminated quickly after use(after sending t
 
 sudo pwsh ./psnanodhcpserv.ps1 -clientipaddresses 192.168.1.1-192.168.1.5 -subnetmask 255.255.255.0 -defaultgateway 192.168.1.254 -dnsserveraddress 8.8.8.8
 
-*You must run this script as administrator or root.*
+- *You must run this script as administrator or root.*
+
+- *Currently supports IPv4 addresses only.*
 
 ## Requirement
 
