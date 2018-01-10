@@ -500,7 +500,6 @@ function setCodeAndOption2DHCPOption($data) {
     for($i=0;$i -lt $data.length;$i++) {
         $dhcpOptions[($headpos + $i)] = $data[$i]
     }
-    #echo("$([string]::Join(" ",$data)):$($i)//")
     $newpos = ForwardHeadPos
     Set-Variable -Name "headpos" -Scope global -Value $newpos
 }
