@@ -680,7 +680,7 @@ function lcl_buildDHCPOFFERPacket() {
 }
 function replyDHCPOFFER() {
     lcl_buildDHCPOFFERPacket
-
+    <#
     echo ("DHCP options.") # debug
     $count=0
     foreach($e in $dhcpOptions) {
@@ -691,8 +691,8 @@ function replyDHCPOFFER() {
     if($count % 16 -ne 0) { [System.Console]::WriteLine("") } 
 
     Write-Debug("DEBUG DHCPOFFER")
+    #>
     echoDHCPPcakcetSend
-
     lcl_sendUDPPacket
 }
 function lcl_buildDHCPPACKPacket() {
@@ -732,7 +732,7 @@ function lcl_buildDHCPPACKPacket() {
 }
 function replyDHCPPACK() {
     lcl_buildDHCPPACKPacket
-
+    <#
     echo ("DHCP options.") # debug
     $count=0
     foreach($e in $dhcpOptions) {
@@ -743,8 +743,8 @@ function replyDHCPPACK() {
     if($count % 16 -ne 0) { [System.Console]::WriteLine("") } 
 
     echo("DEBUG DHCPPACK")
+    #>
     echoDHCPPcakcetSend
-
     lcl_sendUDPPacket
 }
 # Dump UDP packet
@@ -834,11 +834,10 @@ function parseOptionBody() {
         echo(getVEXTParam)
         $headpos=optionParseForwardHeadPos
     }
-
-    [System.Console]::WriteLine("--Terminated.--")
 }
 
 function echoDHCPPcakcetRecv() {
+    [System.Console]::WriteLine("-- -- Recieved packet -- --")
     echo ("Opcode                 " + ":" + [string]::Join(" ", $udpPacketRecv[0..0]))
     echo ("Hardware type          " + ":" + [string]::Join(" ", $udpPacketRecv[1..1]))
     echo ("Hardware address length" + ":" + [string]::Join(" ", $udpPacketRecv[2..2]))
@@ -864,9 +863,11 @@ function echoDHCPPcakcetRecv() {
 
     Set-Variable -Name "headpos" -Scope global -Value 4 
     parseOptionBody
+    [System.Console]::WriteLine("-- -- -- -- -- -- -- -- --")
 }
 
 function echoDHCPPcakcetSend() {
+    [System.Console]::WriteLine("-- -- Sending packet -- --")
     echo ("Opcode                 " + ":" + [string]::Join(" ", $udpPacketSend[0..0]))
     echo ("Hardware type          " + ":" + [string]::Join(" ", $udpPacketSend[1..1]))
     echo ("Hardware address length" + ":" + [string]::Join(" ", $udpPacketSend[2..2]))
@@ -892,6 +893,7 @@ function echoDHCPPcakcetSend() {
 
     Set-Variable -Name "headpos" -Scope global -Value 4 
     parseOptionBody
+    [System.Console]::WriteLine("-- -- -- -- -- -- -- -- --")
 }
 
 function lcl_convertIPAddress($str) { #50 Requested IP Address..
@@ -1028,59 +1030,61 @@ function mainloop() {
             $dhcpOptions[$i] = ($udpPacketRecv[236+$i]) # $udpPacketRecv[236..299]
         }
 
-        echo ("I recieved a BOOTP/DHCP packet-->")
-        echoDHCPPcakcetRecv
-
+        echo ("I recieved a BOOTP/DHCP packet")
         switch(CMDParseOption_DHCPMessageType) {
             $MSG_DHCPDISCOVER { 
-                echo("Recieved DHCPDISCOVER message.")
+                echo("-->Recieved DHCPDISCOVER message.")
+                echoDHCPPcakcetRecv
                 $TransactionID = ([string]::Join("", $udpPacketRecv[4..7]))
                 $ClientIPAddress = (getLeasableIPAddress)
                 $ClientHardwareAddress = ([string]::Join("", $udpPacketRecv[28..33]))
                 if ($noreplymode -ne $TRUE) { replyDHCPOFFER } 
+                echo("-->Send packet.")
                 }
             $MSG_DHCPOFFER {
-                echo("Recieved DHCPOFFER message.")
-                echo("Do nothing.")
-            }
+                echo("-->Recieved DHCPOFFER message.")
+                echo("-->Do nothing.")
+                }
             $MSG_DHCPREQUEST { 
-                echo("Recieved DHCPREQUEST message.")
+                echo("-->Recieved DHCPREQUEST message.")
+                echoDHCPPcakcetRecv
                 $TransactionID = ([string]::Join("", $udpPacketRecv[4..7]))
                 $ClientIPAddress = lcl_convertIPAddress ([string]::Join(".", $udpPacketRecv[12..15]))
-                #Write-Debug($requestedIPAddress)
                 $ClientHardwareAddress = ([string]::Join("", $udpPacketRecv[28..33]))
                 if ($noreplymode -ne $TRUE) { replyDHCPPACK }
+                echo("-->Send packet.")
                 }
             $MSG_DHCPDECLINE {
-                echo("Recieved DHCPDECLINE message.")
-                echo("Do nothing.")
+                echo("-->Recieved DHCPDECLINE message.")
+                echo("-->Do nothing.")
             }
             $MSG_DHCPPACK {
-                echo("Recieved DHCPPACK message.")
-                echo("Do nothing.")
+                echo("-->Recieved DHCPPACK message.")
+                echo("-->Do nothing.")
             }
             $MSG_DHCPPNCK{
-                echo("Recieved DHCPPNCK message.")
-                echo("Do nothing.")
+                echo("-->Recieved DHCPPNCK message.")
+                echo("-->Do nothing.")
             }
             $MSG_DHCPRELEASE{
-                echo("Recieved DHCPRELEASE message.")
-                echo("Do nothing.")
+                echo("-->Recieved DHCPRELEASE message.")
+                echoDHCPPcakcetRecv
+                echo("-->Do nothing.")
             }
             $MSG_DHCPINFRM{
-                echo("Recieved DHCPINFRM message.")
+                echo("-->Recieved DHCPINFRM message.")
                 $TransactionID = ([string]::Join("", $udpPacketRecv[4..7]))
                 $ClientIPAddress = lcl_convertIPAddress ([string]::Join(".", $udpPacketRecv[12..15]))
-                #Write-Debug($requestedIPAddress)
                 $ClientHardwareAddress = ([string]::Join("", $udpPacketRecv[28..33]))
                 if ($noreplymode -ne $TRUE) { replyDHCPPACK }
-                echo("Do nothing.")
+                echo("-->Send packet.")           
             }
             default { 
                 echo("Recieved unknown message.")
-                echo("Do nothing.") 
+                echo("-->Do nothing.") 
             }
         }
+        [System.Console]::WriteLine()
     }
 }
 
