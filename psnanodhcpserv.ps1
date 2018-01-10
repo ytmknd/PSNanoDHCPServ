@@ -637,6 +637,15 @@ function clearDHCPOptionsBuf() {
     Set-Variable -Name "dhcpOptions" -Scope global -Value (@("00") * 64) 
 }
 
+function lcl_sendUDPPacket() {
+    $b=@()
+    foreach($d in $udpPacketSend) {
+        $b += [Byte]::Parse(([Convert]::ToInt32($d,16)), [System.Globalization.NumberStyles]::Integer) 
+    }
+    $endpoint = new-object System.Net.IPEndPoint (([system.net.IPAddress]::Parse($endpointIPAddress)),68)
+    $bytesSent=$udpclient.Send($b,($b.length),$endpoint)
+}
+
 function lcl_buildDHCPOFFERPacket() {
     ##Header
     setOpcode2UDPPacket $DHCP_OPCODE_ACK
@@ -691,13 +700,7 @@ function replyDHCPOFFER() {
     Write-Debug("DEBUG DHCPOFFER")
     echoDHCPPcakcetSend
 
-    #send
-    $b=@()
-    foreach($d in $udpPacketSend) {
-        $b += [Byte]::Parse(([Convert]::ToInt32($d,16)), [System.Globalization.NumberStyles]::Integer) 
-    }
-    $endpoint = new-object System.Net.IPEndPoint (([system.net.IPAddress]::Parse($endpointIPAddress)),68)
-    $bytesSent=$udpclient.Send($b,($b.length),$endpoint)
+    lcl_sendUDPPacket
 }
 function lcl_buildDHCPPACKPacket() {
     ##Header
@@ -753,13 +756,7 @@ function replyDHCPPACK() {
     echo("DEBUG DHCPPACK")
     echoDHCPPcakcetSend
 
-    #send
-    $b=@()
-    foreach($d in $udpPacketSend) {
-        $b += [Byte]::Parse(([Convert]::ToInt32($d,16)), [System.Globalization.NumberStyles]::Integer) 
-    }
-    $endpoint = new-object System.Net.IPEndPoint (([system.net.IPAddress]::Parse($endpointIPAddress)),68)
-    $bytesSent=$udpclient.Send($b,($b.length),$endpoint)
+    lcl_sendUDPPacket
 }
 # Dump UDP packet
 function CMDParseOption_NotImplemented() {
