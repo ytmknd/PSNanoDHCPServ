@@ -501,6 +501,8 @@ function setCodeAndOption2DHCPOption($data) {
         $dhcpOptions[($headpos + $i)] = $data[$i]
     }
     #echo("$([string]::Join(" ",$data)):$($i)//")
+    $newpos = ForwardHeadPos
+    Set-Variable -Name "headpos" -Scope global -Value $newpos
 }
 function setEndMark2DHCPOption() { 
     $dhcpOptions[$headpos] = "FF" 
@@ -667,21 +669,13 @@ function lcl_buildDHCPOFFERPacket() {
     setMagic2DHCPOption
     Set-Variable -Name "headpos" -Scope global -Value 4 
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "DHCP message type.",$MSG_DHCPOFFER) # Option: (53) DHCP Message Type (OFFER)
-    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Server identifier.",$ServerIdentifier) # Option: (54) DHCP Server Identifier
-    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "IP address lease time.","1day") # Option: (51) IP Address Lease Time
-    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Subnet Mask.",$SubnetMask) # Option: (1) Subnet Mask
-    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Router.",$Router) # Option: (3) Router
-    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Domain Name Server.","192.168.10.1") # Option: (6) Domain Name Server
-    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Domain Name.",$DomainNameServer) # Option: (15) Domain Name
-    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "NetBIOS over TCP/IP name server.",$NetBIOSOverTCPIPNameServer) # Option: (44) NetBIOS over TCP/IP Name Server
-    $headpos=ForwardHeadPos
     setEndMark2DHCPOption
     setDHCPOption2UDPPacket $dhcpOptions
 }
@@ -723,21 +717,13 @@ function lcl_buildDHCPPACKPacket() {
     setMagic2DHCPOption
     Set-Variable -Name "headpos" -Scope global -Value 4 
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "DHCP message type.",$MSG_DHCPPACK) # Option: (53) DHCP Message Type (ACK)
-    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Server identifier.",$ServerIdentifier) # Option: (54) DHCP Server Identifier
-    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "IP address lease time.","1day") # Option: (51) IP Address Lease Time
-    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Subnet Mask.",$SubnetMask) # Option: (1) Subnet Mask
-    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Router.",$Router) # Option: (3) Router
-    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Domain Name Server.",$DomainNameServer) # Option: (6) Domain Name Server
-    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Domain Name.",$DomainName) # Option: (15) Domain Name
-    $headpos=ForwardHeadPos
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "NetBIOS over TCP/IP name server.",$NetBIOSOverTCPIPNameServer) # Option: (44) NetBIOS over TCP/IP Name Server
-    $headpos=ForwardHeadPos
     setEndMark2DHCPOption
     setDHCPOption2UDPPacket $dhcpOptions
 }
