@@ -47,7 +47,7 @@ $DebugPreference = "Continue"
 $TransactionID = "00000000"
 $ClientIPAddress = "127.0.0.1"
 $ClientHardwareAddress = "112233445566"
-$ServerIdentifier = "192.168.10.5"
+$ServerIdentifier = "192.168.10.224"
 
 $global:clientIPAddressStartAddress = @(0,0,0,0)   
 $global:clientIPAddressEndAddress = @(0,0,0,0)   
@@ -406,7 +406,7 @@ function setYourIPAddress2UDPPacket($ip) { #Your IP address
         throw "Exception : Illegal parameter(" + $MyInvocation.MyCommand + ")"
     }
     foreach($o in $aIp) {
-        if (($o -lt 0) -Or ($o -gt 255)) {
+        if (($o.ToInt32($Null) -lt 0) -Or ($o.ToInt32($Null) -gt 255)) {
             throw "Exception : Illegal parameter(" + $MyInvocation.MyCommand + ")"
         } 
     }
@@ -638,6 +638,15 @@ function clearDHCPOptionsBuf() {
     Set-Variable -Name "dhcpOptions" -Scope global -Value (@("00") * 64) 
 }
 
+function lcl_sendUDPPacketBroadcast() {
+    $b=@()
+    foreach($d in $udpPacketSend) {
+        $b += [Byte]::Parse(([Convert]::ToInt32($d,16)), [System.Globalization.NumberStyles]::Integer) 
+    }
+    $endpoint = new-object System.Net.IPEndPoint (([system.net.IPAddress]::Parse("255.255.255.255")),68)
+    $bytesSent=$udpclient.Send($b,($b.length),$endpoint)
+}
+
 function lcl_sendUDPPacket() {
     $b=@()
     foreach($d in $udpPacketSend) {
@@ -657,7 +666,7 @@ function lcl_buildDHCPOFFERPacket() {
     setNumberOfSeconds2UDPPacket
     setFlagsOfSeconds2UDPPacket
     setClientIPAddress2UDPPacket (getLeasableIPAddress)
-    setYourIPAddress2UDPPacket "0.0.0.0"
+    setYourIPAddress2UDPPacket $ServerIdentifier
     setServerIPAddress2UDPPacket "0.0.0.0"
     setGatewayIPAddress2UDPPacket "0.0.0.0"
     setClientHardwareAddress2UDPPacket $ClientHardwareAddress
@@ -673,7 +682,7 @@ function lcl_buildDHCPOFFERPacket() {
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Subnet Mask.",$SubnetMask) # Option: (1) Subnet Mask
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Router.",$Router) # Option: (3) Router
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Domain Name Server.","192.168.10.1") # Option: (6) Domain Name Server
-    setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Domain Name.",$DomainNameServer) # Option: (15) Domain Name
+    setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "Domain Name.",$DomainName) # Option: (15) Domain Name
     setCodeAndOption2DHCPOption (getOptionSeq4DHCPOption "NetBIOS over TCP/IP name server.",$NetBIOSOverTCPIPNameServer) # Option: (44) NetBIOS over TCP/IP Name Server
     setEndMark2DHCPOption
     setDHCPOption2UDPPacket $dhcpOptions
@@ -693,7 +702,7 @@ function replyDHCPOFFER() {
     Write-Debug("DEBUG DHCPOFFER")
     #>
     echoDHCPPcakcetSend
-    lcl_sendUDPPacket
+    lcl_sendUDPPacketBroadcast
 }
 function lcl_buildDHCPPACKPacket() {
     ##Header
@@ -709,7 +718,7 @@ function lcl_buildDHCPPACKPacket() {
     } else {
         setClientIPAddress2UDPPacket (getLeasableIPAddress)   
     }
-    setYourIPAddress2UDPPacket "0.0.0.0"
+    setYourIPAddress2UDPPacket $ServerIdentifier
     setServerIPAddress2UDPPacket "0.0.0.0"
     setGatewayIPAddress2UDPPacket "0.0.0.0"
     setClientHardwareAddress2UDPPacket $ClientHardwareAddress
