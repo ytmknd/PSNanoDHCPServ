@@ -666,11 +666,8 @@ function lcl_buildDHCPOFFERPacket() {
     setNumberOfSeconds2UDPPacket
     setFlagsOfSeconds2UDPPacket
     setClientIPAddress2UDPPacket "0.0.0.0"
-    if ($requestedIPAddress -ne "0.0.0.0") {
-        setYourIPAddress2UDPPacket ($requestedIPAddress)
-    } else {
-        setYourIPAddress2UDPPacket (getLeasableIPAddress)   
-    }
+    #Write-Debug("$($requestedIPAddress)")
+    setYourIPAddress2UDPPacket (getLeasableIPAddress) 
     setServerIPAddress2UDPPacket "0.0.0.0"
     setGatewayIPAddress2UDPPacket "0.0.0.0"
     setClientHardwareAddress2UDPPacket $ClientHardwareAddress
@@ -706,11 +703,8 @@ function lcl_buildDHCPPACKPacket() {
     setNumberOfSeconds2UDPPacket
     setFlagsOfSeconds2UDPPacket
     setClientIPAddress2UDPPacket "0.0.0.0"
-    if ($requestedIPAddress -ne "0.0.0.0") {
-        setYourIPAddress2UDPPacket ($requestedIPAddress)
-    } else {
-        setYourIPAddress2UDPPacket (getLeasableIPAddress)   
-    }
+    #Write-Debug("$($requestedIPAddress)")
+    setYourIPAddress2UDPPacket (getLeasableIPAddress)
     setServerIPAddress2UDPPacket "0.0.0.0"
     setGatewayIPAddress2UDPPacket "0.0.0.0"
     setClientHardwareAddress2UDPPacket $ClientHardwareAddress
