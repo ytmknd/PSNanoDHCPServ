@@ -689,18 +689,6 @@ function lcl_buildDHCPOFFERPacket() {
 }
 function replyDHCPOFFER() {
     lcl_buildDHCPOFFERPacket
-    <#
-    echo ("DHCP options.") # debug
-    $count=0
-    foreach($e in $dhcpOptions) {
-        [System.Console]::Write($d + " ")
-        $count += 1 
-        if ($count % 16 -eq 0) { [System.Console]::WriteLine("") } 
-    }
-    if($count % 16 -ne 0) { [System.Console]::WriteLine("") } 
-
-    Write-Debug("DEBUG DHCPOFFER")
-    #>
     echoDHCPPcakcetSend
     lcl_sendUDPPacketBroadcast
 }
@@ -741,18 +729,6 @@ function lcl_buildDHCPPACKPacket() {
 }
 function replyDHCPPACK() {
     lcl_buildDHCPPACKPacket
-    <#
-    echo ("DHCP options.") # debug
-    $count=0
-    foreach($e in $dhcpOptions) {
-        [System.Console]::Write($e + " ")
-        $count += 1 
-        if ($count % 16 -eq 0) { [System.Console]::WriteLine("") } 
-    }
-    if($count % 16 -ne 0) { [System.Console]::WriteLine("") } 
-
-    echo("DEBUG DHCPPACK")
-    #>
     echoDHCPPcakcetSend
     lcl_sendUDPPacket
 }
