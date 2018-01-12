@@ -141,7 +141,7 @@ $DHCPOptionTable=@(
 <# 52#> @("Option overload.",$CMD_PARSER_NOT_IMPLEMENTED),
 <# 53#> @("DHCP message type.","CMDParseOption_DHCPMessageType","getDHCPMessageType4DHCPOption"),
 <# 54#> @("Server identifier.",$CMD_PARSE_OPTION_DUMP_IP,"getServerIdentifier4DHCPOption"),
-<# 55#> @("Parameter request list.",$CMD_PARSE_OPTION_DUMP),
+<# 55#> @("Parameter request list.","CMDParseOption_PrintNumbers"),
 <# 56#> @("Message.",$CMD_PARSER_NOT_IMPLEMENTED),
 <# 57#> @("Maximum DHCP message size.",$CMD_PARSE_OPTION_DUMP),
 <# 58#> @("Renew time value.",$CMD_PARSER_NOT_IMPLEMENTED),
@@ -753,6 +753,17 @@ function CMDParseOption_Dump() {
     $count = 0
     foreach($d in $dhcpOptions[($headpos+2)..($headpos+2+$i-1)]) {
         [System.Console]::Write($d + " ")
+        $count += 1 
+        if ($count % 16 -eq 0) { [System.Console]::WriteLine("") }    
+    }
+    if($count % 16 -ne 0) { [System.Console]::WriteLine("") } 
+}
+
+function CMDParseOption_PrintNumbers() {
+    $i = getVEXTLength
+    $count = 0
+    foreach($d in $dhcpOptions[($headpos+2)..($headpos+2+$i-1)]) {
+        [System.Console]::Write("$([Convert]::ToInt32($d, 16)) ")
         $count += 1 
         if ($count % 16 -eq 0) { [System.Console]::WriteLine("") }    
     }
