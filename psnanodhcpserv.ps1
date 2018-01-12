@@ -665,8 +665,12 @@ function lcl_buildDHCPOFFERPacket() {
     setTransactionID2UDPPacket $TransactionID
     setNumberOfSeconds2UDPPacket
     setFlagsOfSeconds2UDPPacket
-    setClientIPAddress2UDPPacket (getLeasableIPAddress)
-    setYourIPAddress2UDPPacket $ServerIdentifier
+    setClientIPAddress2UDPPacket "0.0.0.0"
+    if ($requestedIPAddress -ne "0.0.0.0") {
+        setYourIPAddress2UDPPacket ($requestedIPAddress)
+    } else {
+        setYourIPAddress2UDPPacket (getLeasableIPAddress)   
+    }
     setServerIPAddress2UDPPacket "0.0.0.0"
     setGatewayIPAddress2UDPPacket "0.0.0.0"
     setClientHardwareAddress2UDPPacket $ClientHardwareAddress
@@ -701,12 +705,12 @@ function lcl_buildDHCPPACKPacket() {
     setTransactionID2UDPPacket $TransactionID
     setNumberOfSeconds2UDPPacket
     setFlagsOfSeconds2UDPPacket
+    setClientIPAddress2UDPPacket "0.0.0.0"
     if ($requestedIPAddress -ne "0.0.0.0") {
-        setClientIPAddress2UDPPacket $requestedIPAddress
+        setYourIPAddress2UDPPacket ($requestedIPAddress)
     } else {
-        setClientIPAddress2UDPPacket (getLeasableIPAddress)   
+        setYourIPAddress2UDPPacket (getLeasableIPAddress)   
     }
-    setYourIPAddress2UDPPacket $ServerIdentifier
     setServerIPAddress2UDPPacket "0.0.0.0"
     setGatewayIPAddress2UDPPacket "0.0.0.0"
     setClientHardwareAddress2UDPPacket $ClientHardwareAddress
@@ -730,7 +734,7 @@ function lcl_buildDHCPPACKPacket() {
 function replyDHCPPACK() {
     lcl_buildDHCPPACKPacket
     echoDHCPPcakcetSend
-    lcl_sendUDPPacket
+    lcl_sendUDPPacketBroadcast
 }
 # Dump UDP packet
 function CMDParseOption_NotImplemented() {
