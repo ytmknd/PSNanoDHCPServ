@@ -45,7 +45,7 @@ Param(
 $DebugPreference = "Continue"
 
 $TransactionID = "00000000"
-$ClientIPAddress = "127.0.0.1"
+$global:ClientIPAddress = "127.0.0.1"
 $ClientHardwareAddress = "112233445566"
 $ServerIdentifier = "192.168.10.224"
 
@@ -60,6 +60,7 @@ $NetBIOSOverTCPIPNameServer = "192.168.10.1"
 $global:requestedIPAddress = "0.0.0.0"
 $global:endpointIPAddress = "0.0.0.0"
 $global:endpointPort = "0"
+$global:bindings = @{"000000000000"="0.0.0.0"}
 
 # Recv
 ## UDP packet buffer
@@ -704,7 +705,9 @@ function lcl_buildDHCPPACKPacket() {
     setFlagsOfSeconds2UDPPacket
     setClientIPAddress2UDPPacket "0.0.0.0"
     #Write-Debug("$($requestedIPAddress)")
-    setYourIPAddress2UDPPacket (getLeasableIPAddress)
+    $ci = (getLeasableIPAddress)
+    setYourIPAddress2UDPPacket $ci
+    $global:ClientIPAddress = $ci
     setServerIPAddress2UDPPacket "0.0.0.0"
     setGatewayIPAddress2UDPPacket "0.0.0.0"
     setClientHardwareAddress2UDPPacket $ClientHardwareAddress
@@ -728,6 +731,7 @@ function lcl_buildDHCPPACKPacket() {
 function replyDHCPPACK() {
     lcl_buildDHCPPACKPacket
     echoDHCPPcakcetSend
+    $global:bindings.Add($ClientHardwareAddress, $global:ClientIPAddress)
     lcl_sendUDPPacketBroadcast
 }
 # Dump UDP packet
@@ -1018,7 +1022,8 @@ function mainloop() {
     while(1) {
         $content = $udpclient.Receive([ref]$endpoint)
         Set-Variable -Name "endpointIPAddress" -Scope global -Value $endpoint.Address.ToString()
-        Set-Variable -Name "endpointPort" -Scope global -Value $endpoint.Port.ToString()         
+        Set-Variable -Name "endpointPort" -Scope global -Value $endpoint.Port.ToString()        
+        #echo("endpointIPAddress:$($endpointIPAddress)") 
         $udpPacketRecv = [bitconverter]::ToString($content).split("-")
         for($i=0;$i -lt 64;$i++) {
             $dhcpOptions[$i] = ($udpPacketRecv[236+$i]) # $udpPacketRecv[236..299]
@@ -1086,6 +1091,8 @@ function mainloop() {
                 echo("-->Do nothing.") 
             }
         }
+        $bd = $global:bindings | Out-String
+        Write-Debug("Bindings $($bd)")
         [System.Console]::WriteLine()
     }
 }
