@@ -78,9 +78,9 @@ $global:dhcpOptions = @("00") * 64
 $global:headpos = 4 # skip magic 
 
 $port=67
-$endpoint = new-object System.Net.IPEndPoint ([IPAddress]::Any,$port)
+$endpoint = new-object System.Net.IPEndPoint ([IPAddress]::Any, 0)
 $udpclient = new-Object System.Net.Sockets.UdpClient $port
-$udpclient.EnableBroadcast = $TRUE;
+$udpclient.EnableBroadcast = $TRUE
 
 # Recv
 set-variable -name CMD_PARSER_NOT_IMPLEMENTED -value "CMDParseOption_NotImplemented" -option constant
@@ -1025,7 +1025,7 @@ function getDnsServerAddress() {
 
 function mainloop() {
     while(1) {
-        $content = $udpclient.Receive([ref]$endpoint)
+        $content = $udpclient.Receive([ref] $endpoint)
         Set-Variable -Name "endpointIPAddress" -Scope global -Value $endpoint.Address.ToString()
         Set-Variable -Name "endpointPort" -Scope global -Value $endpoint.Port.ToString()        
         #echo("endpointIPAddress:$($endpointIPAddress)") 
