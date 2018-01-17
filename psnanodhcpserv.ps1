@@ -80,7 +80,7 @@ $global:headpos = 4 # skip magic
 $port=67
 $endpoint = new-object System.Net.IPEndPoint ([IPAddress]::Any,$port)
 $udpclient = new-Object System.Net.Sockets.UdpClient $port
-$udpclient.EnableBroadcast = true;
+$udpclient.EnableBroadcast = $TRUE;
 
 # Recv
 set-variable -name CMD_PARSER_NOT_IMPLEMENTED -value "CMDParseOption_NotImplemented" -option constant
