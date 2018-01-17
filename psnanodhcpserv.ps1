@@ -22,6 +22,11 @@
         OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
         SOFTWARE.
 #>
+<#
+Ussage:
+./psnanodhcpserv.ps1 -clientipaddresses 192.168.1.1-192.168.1.5 -subnetmask 255.255.255.0 -defaultgateway 192.168.1.254 -dnsserveraddress 8.8.8.8
+#>
+
 [CmdletBinding()]
 Param(
     [Parameter(Mandatory=$TRUE,Position=1)]
