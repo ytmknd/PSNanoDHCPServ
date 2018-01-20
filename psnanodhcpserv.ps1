@@ -633,7 +633,7 @@ function getCMDAndAscii4DHCPOption([int]$num, [array]$opt) {
     #Write-Debug "$($num) $($opt[0])"
     $ret = @( $num.ToString("X2") )
     $ret += ($opt[0]).length.ToString("X2")
-    $aString = $opt.ToCharArray() # FIX THIS.
+    $aString = ($opt[0]).ToCharArray()
     foreach($c in $aString) {
         $ret += ([byte][char]($c)).toString("X2")
     }
