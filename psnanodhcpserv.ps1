@@ -22,6 +22,11 @@
         OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
         SOFTWARE.
 #>
+<#
+Ussage:
+./psnanodhcpserv.ps1 -clientipaddresses 192.168.1.1-192.168.1.5 -subnetmask 255.255.255.0 -defaultgateway 192.168.1.254 -dnsserveraddress 8.8.8.8
+#>
+
 [CmdletBinding()]
 Param(
     [Parameter(Mandatory=$TRUE,Position=1)]
@@ -73,9 +78,9 @@ $global:dhcpOptions = @("00") * 64
 $global:headpos = 4 # skip magic 
 
 $port=67
-$endpoint = new-object System.Net.IPEndPoint ([IPAddress]::Any,$port)
+$endpoint = new-object System.Net.IPEndPoint ([IPAddress]::Any, 0)
 $udpclient = new-Object System.Net.Sockets.UdpClient $port
-$udpclient.EnableBroadcast = true;
+$udpclient.EnableBroadcast = $TRUE
 
 # Recv
 set-variable -name CMD_PARSER_NOT_IMPLEMENTED -value "CMDParseOption_NotImplemented" -option constant
@@ -392,14 +397,14 @@ function setClientIPAddress2UDPPacket($ip) { #Client IP address
         throw "Exception : Illegal parameter(" + $MyInvocation.MyCommand + ")"
     }
     foreach($o in $aIp) {
-        if ((($o.ToInt32($Null)) -lt 0) -Or (($o.ToInt32($Null)) -gt 255)) {
+        if ((([convert]::ToInt32($o,10)) -lt 0) -Or (([convert]::ToInt32($o,10)) -gt 255)) {
             throw "Exception : Illegal parameter(" + $MyInvocation.MyCommand + ")"
         } 
     }
-    $udpPacketSend[12] = $aIp[0].ToInt32($Null).ToString("X2")
-    $udpPacketSend[13] = $aIp[1].ToInt32($Null).ToString("X2")
-    $udpPacketSend[14] = $aIp[2].ToInt32($Null).ToString("X2")
-    $udpPacketSend[15] = $aIp[3].ToInt32($Null).ToString("X2")
+    $udpPacketSend[12] = [convert]::ToInt32($aIp[0],10).ToString("X2")
+    $udpPacketSend[13] = [convert]::ToInt32($aIp[1],10).ToString("X2")
+    $udpPacketSend[14] = [convert]::ToInt32($aIp[2],10).ToString("X2")
+    $udpPacketSend[15] = [convert]::ToInt32($aIp[3],10).ToString("X2")
 }
 function setYourIPAddress2UDPPacket($ip) { #Your IP address
     $aIp = $ip.split(".")
@@ -407,14 +412,14 @@ function setYourIPAddress2UDPPacket($ip) { #Your IP address
         throw "Exception : Illegal parameter(" + $MyInvocation.MyCommand + ")"
     }
     foreach($o in $aIp) {
-        if (($o.ToInt32($Null) -lt 0) -Or ($o.ToInt32($Null) -gt 255)) {
+        if ((([convert]::ToInt32($o,10)) -lt 0) -Or (([convert]::ToInt32($o,10)) -gt 255)) {
             throw "Exception : Illegal parameter(" + $MyInvocation.MyCommand + ")"
         } 
     }
-    $udpPacketSend[16] = $aIp[0].ToInt32($Null).ToString("X2")
-    $udpPacketSend[17] = $aIp[1].ToInt32($Null).ToString("X2")
-    $udpPacketSend[18] = $aIp[2].ToInt32($Null).ToString("X2")
-    $udpPacketSend[19] = $aIp[3].ToInt32($Null).ToString("X2")
+    $udpPacketSend[16] = [convert]::ToInt32($aIp[0],10).ToString("X2")
+    $udpPacketSend[17] = [convert]::ToInt32($aIp[1],10).ToString("X2")
+    $udpPacketSend[18] = [convert]::ToInt32($aIp[2],10).ToString("X2")
+    $udpPacketSend[19] = [convert]::ToInt32($aIp[3],10).ToString("X2")
 }
 function setServerIPAddress2UDPPacket($ip) { #Server IP address
     $aIp = $ip.split(".")
@@ -426,10 +431,10 @@ function setServerIPAddress2UDPPacket($ip) { #Server IP address
             throw "Exception : Illegal parameter(" + $MyInvocation.MyCommand + ")"
         } 
     }
-    $udpPacketSend[20] = $aIp[0].ToInt32($Null).ToString("X2")
-    $udpPacketSend[21] = $aIp[1].ToInt32($Null).ToString("X2")
-    $udpPacketSend[22] = $aIp[2].ToInt32($Null).ToString("X2")
-    $udpPacketSend[23] = $aIp[3].ToInt32($Null).ToString("X2")
+    $udpPacketSend[20] = [convert]::ToInt32($aIp[0],10).ToString("X2")
+    $udpPacketSend[21] = [convert]::ToInt32($aIp[1],10).ToString("X2")
+    $udpPacketSend[22] = [convert]::ToInt32($aIp[2],10).ToString("X2")
+    $udpPacketSend[23] = [convert]::ToInt32($aIp[3],10).ToString("X2")
 }
 function setGatewayIPAddress2UDPPacket($ip) { #Gateway IP address
     $aIp = $ip.split(".")
@@ -441,10 +446,10 @@ function setGatewayIPAddress2UDPPacket($ip) { #Gateway IP address
             throw "Exception : Illegal parameter(" + $MyInvocation.MyCommand + ")"
         } 
     }
-    $udpPacketSend[20] = $aIp[0].ToInt32($Null).ToString("X2")
-    $udpPacketSend[21] = $aIp[1].ToInt32($Null).ToString("X2")
-    $udpPacketSend[22] = $aIp[2].ToInt32($Null).ToString("X2")
-    $udpPacketSend[23] = $aIp[3].ToInt32($Null).ToString("X2")
+    $udpPacketSend[20] = [convert]::ToInt32($aIp[0],10).ToString("X2")
+    $udpPacketSend[21] = [convert]::ToInt32($aIp[1],10).ToString("X2")
+    $udpPacketSend[22] = [convert]::ToInt32($aIp[2],10).ToString("X2")
+    $udpPacketSend[23] = [convert]::ToInt32($aIp[3],10).ToString("X2")
 }
 function setClientHardwareAddress2UDPPacket($mac) { #Boot filename
     if (($mac.length) -ne 12) {
@@ -537,14 +542,14 @@ function getSubnetMask4DHCPOption([int]$num, [array]$opt) {
         throw "Exception : Illegal parameter(" + $MyInvocation.MyCommand + ")"
     }
     foreach($o in $aIp) {
-        if ((($o.ToInt32($Null)) -lt 0) -Or (($o.ToInt32($Null)) -gt 255)) {
+        if ((([convert]::ToInt32($o,10)) -lt 0) -Or (([convert]::ToInt32($o,10)) -gt 255)) {
             throw "Exception : Illegal parameter(" + $MyInvocation.MyCommand + ")"
         } 
     }
-    $ret += $aIp[0].ToInt32($Null).ToString("X2")
-    $ret += $aIp[1].ToInt32($Null).ToString("X2")
-    $ret += $aIp[2].ToInt32($Null).ToString("X2")
-    $ret += $aIp[3].ToInt32($Null).ToString("X2")
+    $ret += [convert]::ToInt32($aIp[0],10).ToString("X2")
+    $ret += [convert]::ToInt32($aIp[1],10).ToString("X2")
+    $ret += [convert]::ToInt32($aIp[2],10).ToString("X2")
+    $ret += [convert]::ToInt32($aIp[3],10).ToString("X2")
     return $ret
 }
 #<#53 1#> @("DHCP message type.",...
@@ -584,14 +589,14 @@ function getServerIdentifier4DHCPOption([int]$num, [array]$opt) {
         throw "Exception : Illegal parameter(" + $MyInvocation.MyCommand + ")"
     }
     foreach($o in $aIp) {
-        if ((($o.ToInt32($Null)) -lt 0) -Or (($o.ToInt32($Null)) -gt 255)) {
+        if ((([convert]::ToInt32($o,10)) -lt 0) -Or (([convert]::ToInt32($o,10)) -gt 255)) {
             throw "Exception : Illegal parameter(" + $MyInvocation.MyCommand + ")"
         } 
     }
-    $ret += $aIp[0].ToInt32($Null).ToString("X2")
-    $ret += $aIp[1].ToInt32($Null).ToString("X2")
-    $ret += $aIp[2].ToInt32($Null).ToString("X2")
-    $ret += $aIp[3].ToInt32($Null).ToString("X2")
+    $ret += [convert]::ToInt32($aIp[0],10).ToString("X2")
+    $ret += [convert]::ToInt32($aIp[1],10).ToString("X2")
+    $ret += [convert]::ToInt32($aIp[2],10).ToString("X2")
+    $ret += [convert]::ToInt32($aIp[3],10).ToString("X2")
     return $ret
 }
 #<#3	4+#> @("Router.",...
@@ -603,14 +608,14 @@ function getCMDAndIPv4Address4DHCPOption([int]$num, [array]$opt) {
         throw "Exception : Illegal parameter(" + $MyInvocation.MyCommand + ")"
     }
     foreach($o in $aIp) {
-        if ((($o.ToInt32($Null)) -lt 0) -Or (($o.ToInt32($Null)) -gt 255)) {
+        if ((([convert]::ToInt32($o,10)) -lt 0) -Or (([convert]::ToInt32($o,10)) -gt 255)) {
             throw "Exception : Illegal parameter(" + $MyInvocation.MyCommand + ")"
         } 
     }
-    $ret += $aIp[0].ToInt32($Null).ToString("X2")
-    $ret += $aIp[1].ToInt32($Null).ToString("X2")
-    $ret += $aIp[2].ToInt32($Null).ToString("X2")
-    $ret += $aIp[3].ToInt32($Null).ToString("X2")
+    $ret += [convert]::ToInt32($aIp[0],10).ToString("X2")
+    $ret += [convert]::ToInt32($aIp[1],10).ToString("X2")
+    $ret += [convert]::ToInt32($aIp[2],10).ToString("X2")
+    $ret += [convert]::ToInt32($aIp[3],10).ToString("X2")
     return $ret
 }
 #<#51 4#> @("IP address lease time.",...
@@ -628,7 +633,7 @@ function getCMDAndAscii4DHCPOption([int]$num, [array]$opt) {
     #Write-Debug "$($num) $($opt[0])"
     $ret = @( $num.ToString("X2") )
     $ret += ($opt[0]).length.ToString("X2")
-    $aString = $opt.ToCharArray()
+    $aString = ($opt[0]).ToCharArray()
     foreach($c in $aString) {
         $ret += ([byte][char]($c)).toString("X2")
     }
@@ -1020,7 +1025,7 @@ function getDnsServerAddress() {
 
 function mainloop() {
     while(1) {
-        $content = $udpclient.Receive([ref]$endpoint)
+        $content = $udpclient.Receive([ref] $endpoint)
         Set-Variable -Name "endpointIPAddress" -Scope global -Value $endpoint.Address.ToString()
         Set-Variable -Name "endpointPort" -Scope global -Value $endpoint.Port.ToString()        
         #echo("endpointIPAddress:$($endpointIPAddress)") 
