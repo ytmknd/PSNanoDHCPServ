@@ -10,7 +10,7 @@ This server only works to send the network settings to a part of PCs into Networ
 Therefore this server *doesn't* have many functions that other servers have.
 And this server *doesn't* compliant exactlry with [RFC2131](https://www.ietf.org/rfc/rfc2131.txt).
 
-I assume that this server should be terminated quickly after use(after sending the network settings to a target PC).
+I assume that this server would used temporalily and should be terminated quickly after use(after sending the network settings to a target PC).
 
 ## Usage
 
