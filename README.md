@@ -19,7 +19,7 @@ I assume that this server would used temporalily and should be terminated quickl
 
 - You must *run as administrator(or root).*
 - Currently supports *IPv4 addresses only.*
-- You can use *-noreplymode* option.
+- You can use *-noreplymode* option for simply listening DHCP messages on your network.
 
 ## Requirement
 
