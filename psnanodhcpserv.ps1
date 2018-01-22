@@ -735,7 +735,11 @@ function lcl_buildDHCPPACKPacket() {
 function replyDHCPPACK() {
     lcl_buildDHCPPACKPacket
     echoDHCPPcakcetSend
-    $global:bindings.Add($ClientHardwareAddress, $global:ClientIPAddress)
+    if ($global:bindings.Contains($ClientHardwareAddress)) {
+        $global:bindings[$ClientHardwareAddress] = $global:ClientIPAddress    
+    } else {
+        $global:bindings.Add($ClientHardwareAddress, $global:ClientIPAddress)
+    }
     lcl_sendUDPPacketBroadcast
 }
 # Dump UDP packet
